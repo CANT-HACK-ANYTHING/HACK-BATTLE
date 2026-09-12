@@ -1,111 +1,47 @@
-# AegisOS
+# Svelte + TS + Vite
 
-Local hands. Local memory. A lock that cannot click.
+This template should help get you started developing with Svelte and TypeScript in Vite.
 
-This laptop still has work that only exists as windows — old ledgers, portals, file dialogs. Macros break when a button moves. Cloud agents see the screen. A single local model will click Submit on a wrong number.
+## Recommended IDE Setup
 
-AegisOS stays on this PC. One process may move the mouse. The other only reads the screen and can lock the mouse. We show it posting invoices, surviving a moved button, and refusing a tampered amount with the network unplugged.
+[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
 
-Same pattern could apply to a hospital or a bank. Not this weekend. Tonight it is a clerk on one machine.
+## Need an official Svelte framework?
 
-## What it is
+Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
 
-An offline clerk for one folder and one old window.
+## Technical considerations
 
-Three desks. One wire. Hands and Head never speak.
+**Why use this over SvelteKit?**
 
+- It brings its own routing solution which might not be preferable for some users.
+- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
+
+This template contains as little as possible to get started with Vite + TypeScript + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
+
+Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
+
+**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
+
+Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
+
+**Why include `.vscode/extensions.json`?**
+
+Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
+
+**Why enable `allowJs` in the TS template?**
+
+While `allowJs: false` would indeed prevent the use of `.js` files in the project, it does not prevent the use of JavaScript syntax in `.svelte` files. In addition, it would force `checkJs: false`, bringing the worst of both worlds: not being able to guarantee the entire codebase is TypeScript, and also having worse typechecking for the existing JavaScript. In addition, there are valid use cases in which a mixed codebase may be relevant.
+
+**Why is HMR not preserving my local component state?**
+
+HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/rixo/svelte-hmr#svelte-hmr).
+
+If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
+
+```ts
+// store.ts
+// An extremely simple external store
+import { writable } from 'svelte/store'
+export default writable(0)
 ```
-invoice / glass
-      ↓
-   [ Brain ]  ← only middle. Memory lives here.
-    ↓     ↓
-[ Hands ] [ Head ]
- click     decide
- type      only when unusual
-```
-
-- **Hands** — the operator. Screenshot, click, type. Never imports Head. Never decides.
-- **Brain** — the middle man. Plans the row, holds the control graph, talks to both sides. Main.py does not post invoices.
-- **Head** — silent on usual work. Wakes only when Brain flags something unusual (Submit, bad window, on-screen amount). Reads the whole dossier (glass + OCR + file + history) and returns ALLOW or VETO. Never moves the mouse.
-
-A moved button is Brain’s job (relocalize). A illegal number is Head’s job. Hands stays out of both decisions.
-
-**Wayne’s room (`vault/`)** is Brain’s private folder. Pictures of the glass stay on this laptop. Hands does not open it. Head never lists it. Wayne looks with Pillow on the local PNG. Head ALLOW → picture deleted, receipt hash only. Head VETO → tombstone, Wayne will not try that harm again.
-
-Each desk has its own CPU learner and its own store under `learn/<desk>/db.json`. No GPU. No network. They read yesterday’s outcomes and write today’s back.
-
-| Desk | Skill | What it writes |
-| --- | --- | --- |
-| Hands | motor | boxes that accepted a type or click |
-| Brain | route | field order per window, how often Submit had to be rebound |
-| Head | anomaly | running mean of allowed amounts, veto rules. Hard freeze in `config.py` still owns the click. The model only scores how strange a number is. |
-
-Freeze → proof hash → rollback snapshot. Nothing leaves the machine.
-
-## What it is not
-
-Not Epic. Not SWIFT. Not a chatbot. Not a cloud Operator. Not a foundation model. Not “the first computer-use agent.”
-
-| Thing | What it does | Why it is not this |
-| --- | --- | --- |
-| RPA (UiPath) | Replays recorded clicks | Dies or “heals” selectors. Does not read the pixels and refuse Submit. |
-| ChatGPT / Claude | Talks. Cloud computer-use sends the screen away | Needs net. One brain marks its own homework. |
-| Local agents | Can click this PC | Still one model with a mouse. No hard freeze from on-screen digits. |
-
-Allowed claim only: two processes, one laptop, no network. Only one process has a mouse. The other reads the glass.
-
-## Demo for judges
-
-```bash
-python aegis/check.py
-python main.py
-```
-
-**Expected outcome:**
-- `aegis/check.py`: `ALL PASS` (isolation, invoices, OCR, head rules, vault cycle)
-- `main.py`: rule `max_amount`, OCR `48,900`, `7 ledger rows`, `no Mehta`
-
-## Demo
-
-`invoices/` is the Sept batch (8 slips). `ledger2005/` is the old cash-book window. This machine has no display server, so the app is its own process and paints the window to a local glass PNG. Hands clicks that glass. Lock OCRs it. Nothing goes to the network.
-
-```bash
-python3 main.py
-```
-
-What happens:
-
-1. Hands opens Ledger2005 and posts invoices into the cash book.
-2. Submit is moved. Memory cannot use the stale box. It searches the live window and the next invoice still posts.
-3. INV-2005-08 paints **Rs 48,900** on the glass. Lock OCRs that region (not the file JSON) and freezes before click. Overlay shows what it saw, which rule fired, and the proof hash. Ledger has no bad row.
-
-If that loop is boringly reliable, the project is done.
-
-## Layout
-
-```
-aegis/hands.py      # operator — click / type only
-aegis/brain.py      # middle — only wire, holds memory
-aegis/lock.py       # head — unusual decisions only
-aegis/memory.py     # control graph used by Brain
-aegis/ocr.py        # Pillow template OCR — amount off glass
-aegis/tiny.py       # from-scratch logistic unit (CPU)
-aegis/vision.py     # Brain looks at glass (Pillow only)
-aegis/vault.py      # Wayne's room — pictures never leave
-requirements.txt    # Pillow. Everything else is the stdlib.
-aegis/learn.py      # three CPU self-learners + private stores
-learn/hands|brain|head/db.json
-config.py           # Head rules — no model here
-ledger2005/
-invoices/
-main.py             # launcher. Does not post invoices.
-```
-
-Lock threshold is `MAX_AMOUNT = 5000` in `config.py`. Raise it only if you want the clerk to post the Mehta slip.
-
-## Proof after a run
-
-- `run/glass.png` — last frame of the window (freeze banner if the lock fired)
-- `run/MOUSE_FROZEN` — rule + OCR + hash
-- `run/proofs/` — glass copies and JSON proofs
-- `run/memory.json` — control graph
