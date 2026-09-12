@@ -1,153 +1,113 @@
-"""Graph of controls. On miss, search the live window. Never invent a box."""
-
-from __future__ import annotations
-
-import hashlib
-import json
+import sqlite3
+import math
 import time
-from pathlib import Path
+from typing import Optional, Tuple, Dict, Any, List
+from config import MEMORY_DB_PATH, SAFETY_BOUNDARIES
 
-from PIL import Image
+class EpisodicMemoryGraph:
+    def __init__(self, db_path=MEMORY_DB_PATH):
+        self.db_path = db_path
+        self._init_db()
 
-import config
-from aegis import ocr
-
-
-class Memory:
-    def __init__(self, db_path: Path | None = None) -> None:
-        self.path = Path(db_path or config.RUN_DIR / "memory.json")
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.controls: dict[str, dict] = {}
-        if self.path.exists():
-            try:
-                self.controls = json.loads(self.path.read_text(encoding="utf-8"))
-            except json.JSONDecodeError:
-                self.controls = {}
-
-    def _flush(self) -> None:
-        try:
-            self.path.write_text(json.dumps(self.controls, indent=2), encoding="utf-8")
-        except OSError:
-            pass
-
-    def remember(self, name: str, window: str, role: str, ocr_text: str, img_hash: str, box) -> None:
-        x, y, w, h = [int(v) for v in box]
-        self.controls[name] = {
-            "name": name,
-            "window": window,
-            "role": role,
-            "ocr_text": ocr_text,
-            "img_hash": img_hash,
-            "x": x,
-            "y": y,
-            "w": w,
-            "h": h,
-            "last_seen": time.time(),
-        }
-
-    def ingest_tree(self, tree: dict) -> None:
-        window = tree.get("window") or config.WINDOW_TITLE
-        for ctrl in tree.get("controls", []):
-            self.remember(
-                ctrl["name"],
-                window,
-                ctrl.get("role", ""),
-                ctrl.get("ocr_text", ""),
-                ctrl.get("hash", ""),
-                ctrl["box"],
+    def _init_db(self):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        
+        # UI Landmark Muscle Memory Nodes
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS muscle_memory_nodes (
+                element_id TEXT PRIMARY KEY,
+                target_app TEXT,
+                coord_x INTEGER,
+                coord_y INTEGER,
+                confidence REAL,
+                execution_count INTEGER DEFAULT 0,
+                last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        self._flush()
+        ''')
 
-    def get(self, name: str) -> dict | None:
-        row = self.controls.get(name)
-        return dict(row) if row else None
+        # Self-Healing & Adaptation Log
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS self_healing_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                element_id TEXT,
+                old_x INTEGER,
+                old_y INTEGER,
+                new_x INTEGER,
+                new_y INTEGER,
+                drift_distance REAL,
+                healed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
 
-    def box(self, name: str) -> tuple[int, int, int, int] | None:
-        row = self.get(name)
-        if not row:
-            return None
-        return int(row["x"]), int(row["y"]), int(row["w"]), int(row["h"])
+        conn.commit()
+        conn.close()
 
-    def stored_box(self, name: str) -> tuple[int, int, int, int] | None:
-        return self.box(name)
+    def register_or_update_node(self, element_id: str, target_app: str, x: int, y: int, confidence: float = 1.0):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute('''
+            INSERT INTO muscle_memory_nodes (element_id, target_app, coord_x, coord_y, confidence, execution_count, last_used)
+            VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+            ON CONFLICT(element_id) DO UPDATE SET
+                coord_x = excluded.coord_x,
+                coord_y = excluded.coord_y,
+                confidence = excluded.confidence,
+                execution_count = execution_count + 1,
+                last_used = CURRENT_TIMESTAMP
+        ''', (element_id, target_app, x, y, confidence))
+        conn.commit()
+        conn.close()
 
-    def center(self, name: str) -> tuple[int, int] | None:
-        b = self.box(name)
-        if not b:
-            return None
-        x, y, w, h = b
-        return x + w // 2, y + h // 2
+    def query_node(self, element_id: str) -> Optional[Tuple[int, int]]:
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute("SELECT coord_x, coord_y, confidence FROM muscle_memory_nodes WHERE element_id = ?", (element_id,))
+        row = cur.fetchone()
+        conn.close()
+        if row and row[2] >= SAFETY_BOUNDARIES["MUSCLE_MEMORY_MIN_CONFIDENCE"]:
+            return (row[0], row[1])
+        return None
 
-    def load_tree(self) -> dict:
-        if not config.TREE_PATH.exists():
-            return {}
-        return json.loads(config.TREE_PATH.read_text(encoding="utf-8"))
+    def detect_drift(self, cached_pos: Tuple[int, int], current_pos: Tuple[int, int]) -> Tuple[bool, float]:
+        dx = current_pos[0] - cached_pos[0]
+        dy = current_pos[1] - cached_pos[1]
+        dist = math.sqrt(dx * dx + dy * dy)
+        # Anything more than 15px is considered a UI relocation/drift
+        is_drift = dist > 15.0
+        return is_drift, dist
 
-    def relocalize(self, name: str, glass: Image.Image | None = None) -> dict:
-        """Find a control again after the UI moved.
+    def record_healing_event(self, element_id: str, old_pos: Tuple[int, int], new_pos: Tuple[int, int], dist: float):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute('''
+            INSERT INTO self_healing_log (element_id, old_x, old_y, new_x, new_y, drift_distance)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (element_id, old_pos[0], old_pos[1], new_pos[0], new_pos[1], dist))
+        
+        # Update node coordinates in muscle memory
+        cur.execute('''
+            UPDATE muscle_memory_nodes 
+            SET coord_x = ?, coord_y = ?, confidence = 1.0, last_used = CURRENT_TIMESTAMP
+            WHERE element_id = ?
+        ''', (new_pos[0], new_pos[1], element_id))
+        
+        conn.commit()
+        conn.close()
 
-        Order: live accessibility tree by name → OCR of the glass for the
-        control's last known label → stored box only if the crop hash still
-        matches. Never add an offset because a simulator told you.
-        """
-        tree = self.load_tree()
-        for ctrl in tree.get("controls", []):
-            if ctrl.get("name") == name:
-                self.remember(
-                    name,
-                    tree.get("window") or config.WINDOW_TITLE,
-                    ctrl.get("role", ""),
-                    ctrl.get("ocr_text", ""),
-                    ctrl.get("hash", ""),
-                    ctrl["box"],
-                )
-                return {"found": True, "how": "live_tree", "control": ctrl, "box": ctrl["box"]}
-
-        wanted = self.get(name)
-        label = {
-            "submit": "Submit",
-            "amount": "Amount",
-            "vendor": "Vendor",
-            "invoice_no": "Invoice",
-            "date": "Date",
-        }.get(name, name)
-
-        img = glass if glass is not None else ocr.load_glass(config.GLASS_PATH)
-        for word in ocr.word_boxes(img):
-            if word["text"].lower() == label.lower():
-                box = word["box"]
-                if name != "submit":
-                    x, y, w, h = box
-                    box = [x + w + 20, y - 8, 240, max(h + 16, 34)]
-                self.remember(name, config.WINDOW_TITLE, "ocr", word["text"], "", box)
-                self._flush()
-                return {"found": True, "how": "ocr_search", "control": word, "box": box}
-
-        if wanted:
-            stored = (wanted["x"], wanted["y"], wanted["w"], wanted["h"])
-            crop = ocr.crop_box(img, stored)
-            digest = hashlib.sha256(crop.tobytes()).hexdigest()[:16]
-            if digest == wanted.get("img_hash"):
-                return {"found": True, "how": "hash_confirm", "box": list(stored)}
-
-        return {"found": False, "how": "miss", "box": None}
-
-    def find(self, name: str, glass: Image.Image | None = None) -> tuple[int, int, int, int]:
-        hit = self.relocalize(name, glass)
-        if not hit["found"]:
-            raise LookupError(f"control not on glass: {name}")
-        box = hit["box"]
-        return int(box[0]), int(box[1]), int(box[2]), int(box[3])
-
-    def box_still_valid(self, name: str, glass: Image.Image | None = None) -> bool:
-        stored = self.get(name)
-        if not stored:
-            return False
-        img = glass if glass is not None else ocr.load_glass(config.GLASS_PATH)
-        box = (stored["x"], stored["y"], stored["w"], stored["h"])
-        crop = ocr.crop_box(img, box)
-        if name == "submit":
-            text = ocr.read_text(crop, psm=7).lower()
-            return "submit" in text
-        digest = hashlib.sha256(crop.tobytes()).hexdigest()[:16]
-        return digest == (stored.get("img_hash") or "")
+    def get_healing_history(self) -> List[Dict[str, Any]]:
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute("SELECT element_id, old_x, old_y, new_x, new_y, drift_distance, healed_at FROM self_healing_log ORDER BY id DESC")
+        rows = cur.fetchall()
+        conn.close()
+        return [
+            {
+                "element_id": r[0],
+                "from": (r[1], r[2]),
+                "to": (r[3], r[4]),
+                "drift_px": round(r[5], 1),
+                "timestamp": r[6]
+            }
+            for r in rows
+        ]

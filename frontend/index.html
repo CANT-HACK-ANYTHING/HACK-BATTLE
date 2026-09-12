@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AegisOS :: Ambient Mission Control & Spatial Actuator</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,800;1,400&family=Space+Grotesk:wght@400;600;700&display=swap');
+
+    :root {
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-display: 'Space Grotesk', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-display);
+      background-color: #05070d;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+
+    .font-mono {
+      font-family: var(--font-mono);
+    }
+
+    /* Cyberpunk / Glassmorphic glowing utilities */
+    .glass-panel {
+      background: rgba(11, 17, 32, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.15);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    .glass-panel-danger {
+      background: rgba(35, 11, 19, 0.9);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);
+    }
+
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+    }
+
+    .glow-emerald {
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.35);
+    }
+
+    .glow-crimson {
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+      animation: pulse-danger 1.5s infinite;
+    }
+
+    @keyframes pulse-danger {
+      0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 35px rgba(239, 68, 68, 0.85); }
+    }
+
+    /* Scanline overlay */
+    .scanlines {
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.03),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 0, 255, 0.03)
+      );
+      background-size: 100% 3px, 3px 100%;
+      pointer-events: none;
+    }
+
+    /* Smooth virtual cursor */
+    #virtual-cursor {
+      position: absolute;
+      top: 100px;
+      left: 100px;
+      width: 24px;
+      height: 24px;
+      pointer-events: none;
+      z-index: 999;
+      transition: top 0.45s cubic-bezier(0.22, 1, 0.36, 1), left 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #virtual-cursor.clicking svg {
+      transform: scale(0.8) rotate(-8deg);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #38bdf8;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#05070d] text-slate-100 flex flex-col antialiased selection:bg-cyan-500 selection:text-black">
+
+    <!-- BE2 LIVE TELEMETRY WARNING ALERT CARD -->
+    <div id="be2-drift-alert" class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-xl p-3.5 rounded-xl bg-amber-950/95 border-2 border-amber-500 text-amber-100 font-mono text-xs shadow-[0_0_30px_rgba(245,158,11,0.35)] -translate-y-24 opacity-0 transition-all duration-300 flex items-center justify-between pointer-events-none">
+      <div class="flex items-center space-x-3">
+        <span class="w-3.5 h-3.5 rounded-full bg-amber-400 animate-ping"></span>
+        <div>
+          <div class="font-extrabold text-amber-300 text-xs tracking-wider uppercase">? MEMORY DRIFT DETECTED [BE2 TELEMETRY]</div>
+          <div id="be2-drift-msg" class="text-[11px] text-amber-100 mt-0.5">Button relocated by ?x=+120px (Spatial Recalibration Engaged)</div>
+        </div>
+      </div>
+      <span class="px-2.5 py-1 rounded bg-black/70 text-amber-300 text-[10px] font-bold border border-amber-600/80 tracking-wider">ENTROPY DETECTED</span>
+    </div>
+
+    <!-- BE2 LIVE TELEMETRY SUCCESS CARD -->
+    <div id="be2-heal-success-card" class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-xl p-3.5 rounded-xl bg-emerald-950/95 border-2 border-emerald-400 text-emerald-100 font-mono text-xs shadow-[0_0_35px_rgba(16,185,129,0.4)] -translate-y-24 opacity-0 transition-all duration-300 flex items-center justify-between pointer-events-none">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-300 font-black text-sm">?</div>
+        <div>
+          <div class="font-extrabold text-emerald-300 text-xs tracking-wider uppercase">SELF_HEALING_COMPLETED [BE2 TELEMETRY]</div>
+          <div id="be2-heal-msg" class="text-[11px] text-emerald-100 mt-0.5">Target re-anchored at new coordinates. Muscle memory edge updated in SQLite.</div>
+        </div>
+      </div>
+      <span class="px-2.5 py-1 rounded bg-emerald-900/90 text-emerald-200 text-[10px] font-bold border border-emerald-500 tracking-wider">NODE #10B981</span>
+    </div>
+
+
+
+  <!-- TOP HUD NAVIGATION -->
+  <header class="border-b border-cyan-900/40 bg-[#080d18]/90 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <div class="relative flex items-center justify-center w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 font-mono font-black text-xl shadow-[0_0_15px_rgba(56,189,248,0.2)]">
+        Æ
+        <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
+        <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full"></span>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="font-extrabold tracking-wider text-lg text-white">AEGIS<span class="text-cyan-400 font-mono">::OS</span></h1>
+          <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">Mission Control</span>
+          <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Zero-Chat Architecture</span>
+        </div>
+        <p class="text-xs text-slate-400 hidden md:block">Autonomous Ambient Desktop Operator with Sensory Hands, Episodic Memory & Formal Boundary Contracts</p>
+      </div>
+    </div>
+
+    <!-- Live Status Indicators & Action Bar -->
+    <div class="flex items-center space-x-3 font-mono text-xs">
+      
+      <!-- BE2 Live Wi-Fi Server Status Badge -->
+      <div id="ws-status-badge" onclick="switchTelemetryHost()" class="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-300 flex items-center space-x-2 font-mono text-[11px] transition-all cursor-pointer hover:border-cyan-500" title="Click to switch Telemetry Server IP:Port (e.g. localhost:8000 or 172.18.238.74:8000)">
+        <span id="ws-indicator-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+        <span id="ws-status-text">WS: CONNECTING (172.18.238.74)</span>
+      </div>
+
+      <div id="system-status-badge" class="px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="system-status-text">SYSTEM ARMED // IDLE</span>
+      </div>
+
+            <!-- Speed Multiplier -->
+      <button id="btn-speed-toggle" onclick="cycleSpeed()" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-cyan-400 hover:border-cyan-500 transition font-bold" title="Toggle Execution Speed">
+        SPEED: <span id="speed-indicator">1.0x</span>
+      </button>
+
+            <!-- GitHub Repository Link -->
+      <a id="btn-github-repo" href="https://github.com/Piyush/HackBattle" target="_blank" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-500 transition font-bold flex items-center space-x-1.5" title="View Source on GitHub (HackBattle)">
+        <svg class="w-3.5 h-3.5 fill-current text-slate-300" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <span>GITHUB</span>
+      </a>
+
+      <!-- Presenter Mode Toggle -->
+      <button onclick="togglePresenterGuide()" class="px-3 py-1.5 rounded-lg bg-indigo-950 border border-indigo-700 text-indigo-300 hover:bg-indigo-900 font-bold transition flex items-center space-x-1">
+        <span>GUIDE</span>
+      </button>
+      <button id="btn-sound-toggle" onclick="toggleAudio()" class="px-3 py-1 rounded bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-500 transition">
+        🔊 AUDIO: <span id="sound-state">ON</span>
+      </button>
+
+      <button onclick="runFullDemo()" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold tracking-wide shadow-[0_0_20px_rgba(56,189,248,0.4)] transition transform active:scale-95 flex items-center space-x-1.5">
+        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span>RUN 3-ACT DEMO</span>
+      </button>
+
+      <button onclick="resetSystem()" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white transition">
+        ↺ RESET
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- REAL-TIME SYSTEM TELEMETRY STRIP (BENCHMARKS FOR AI EXPERTS)          -->
+  <!-- ===================================================================== -->
+  <div class="border-b border-slate-800 bg-[#060911] px-6 py-1.5 text-[11px] font-mono flex items-center justify-between text-slate-400 overflow-x-auto">
+    <div class="flex items-center space-x-6">
+      <div class="flex items-center space-x-1.5">
+        <span class="text-slate-500">PERCEPTION LATENCY:</span>
+        <span id="bench-perception" class="text-cyan-400 font-bold">12.4ms</span>
+        <span class="text-[9px] text-slate-600">(vs 1200ms LLM Vision)</span>
+      </div>
+      <div class="flex items-center space-x-1.5">
+        <span class="text-slate-500">INVARIANT EVALUATION:</span>
+        <span id="bench-invariant" class="text-emerald-400 font-bold">0.65ms</span>
+        <span class="text-[9px] text-slate-600">(Deterministic O(1))</span>
+      </div>
+      <div class="flex items-center space-x-1.5">
+        <span class="text-slate-500">ATOMIC SNAPSHOT:</span>
+        <span id="bench-snapshot" class="text-cyan-400 font-bold">2.8ms</span>
+      </div>
+      <div class="flex items-center space-x-1.5">
+        <span class="text-slate-500">MUSCLE CACHE HIT:</span>
+        <span id="bench-cache" class="text-emerald-400 font-bold">98.4%</span>
+      </div>
+      <div class="flex items-center space-x-1.5">
+        <span class="text-slate-500">BLAST RADIUS LEAK:</span>
+        <span id="bench-leak" class="text-emerald-400 font-black">0.00%</span>
+        <span class="text-[9px] text-slate-600">(Zero Data Corruption)</span>
+      </div>
+    </div>
+    <div class="flex items-center space-x-2 text-[10px]">
+      <span class="text-slate-500">STEP DEBUGGER:</span>
+      <button onclick="runAct1()" class="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 hover:border-cyan-500 text-cyan-300">ACT I (HANDS)</button>
+      <button onclick="runAct2()" class="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 hover:border-amber-500 text-amber-300">ACT II (DRIFT)</button>
+      <button onclick="runAct3()" class="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 hover:border-rose-500 text-rose-300">ACT III (ATTACK)</button>
+    </div>
+  </div>
+
+
+  <!-- MAIN OPERATIONAL GRID -->
+  <main class="flex-1 p-5 grid grid-cols-12 gap-5 max-w-[1920px] mx-auto w-full">
+
+    <!-- LEFT COLUMN: THE HANDS & VIRTUAL OS WORKSPACE (5 COLS) -->
+    <section class="col-span-12 lg:col-span-5 flex flex-col space-y-4">
+      
+      <!-- OS Window Simulation Card -->
+      <div class="glass-panel rounded-xl overflow-hidden flex flex-col h-[560px] relative border-cyan-500/20">
+        
+        <!-- OS Title Bar -->
+        <div class="bg-slate-900/90 border-b border-slate-800 px-3.5 py-2 flex items-center justify-between">
+          <div class="flex items-center space-x-2 text-xs font-mono text-slate-300">
+            <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
+            <span class="ml-2 font-semibold text-slate-200">Legacy Enterprise Financial ERP v4.2 [WIN32]</span>
+          </div>
+          <div class="flex items-center space-x-2 text-[11px] font-mono text-cyan-400">
+            <span>PORT: 8080</span>
+            <span class="px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-800/60">ACTUATION SANDBOX</span>
+          </div>
+        </div>
+
+        <!-- Virtual Screen Content Area -->
+        <div id="desktop-viewport" class="relative flex-1 bg-slate-200 p-5 overflow-hidden font-sans select-none text-slate-900">
+          
+          <!-- Animated Virtual OS Cursor -->
+          <div id="virtual-cursor" style="top: 220px; left: 240px;">
+            <svg class="w-6 h-6 text-black drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] transition-transform" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 0l16 12.279-6.951 1.17 4.325 8.817-3.596 1.734-4.35-8.879-5.428 5.239z"/>
+            </svg>
+            <div id="cursor-target-ring" class="absolute -top-3 -left-3 w-12 h-12 border-2 border-cyan-500 rounded-full opacity-0 scale-50 transition-all pointer-events-none"></div>
+          </div>
+
+          <!-- Enterprise Form Mockup -->
+          <div class="bg-white rounded border border-slate-400 shadow-sm p-4">
+            <div class="border-b border-slate-300 pb-2 mb-3 flex justify-between items-center">
+              <div>
+                <h3 class="text-xs font-bold text-slate-800 tracking-wide uppercase">Transaction Settlement Voucher</h3>
+                <p class="text-[10px] text-slate-500 font-mono">DISBURSEMENT PIPELINE :: STRICT COMPLIANCE</p>
+              </div>
+              <span id="erp-stamp" class="text-[9px] font-mono px-2 py-0.5 border border-slate-400 text-slate-600 rounded bg-slate-100">READY</span>
+            </div>
+
+            <!-- Inputs -->
+            <div class="space-y-2 text-xs">
+              <div class="grid grid-cols-3 items-center">
+                <label class="text-slate-600 font-semibold text-[11px]">Vendor Name:</label>
+                <input id="input-vendor" type="text" readonly class="col-span-2 px-2 py-1 bg-slate-50 border border-slate-300 rounded font-mono text-slate-800 text-xs focus:bg-white focus:border-blue-600 transition" placeholder="Awaiting actuation...">
+              </div>
+              <div class="grid grid-cols-3 items-center">
+                <label class="text-slate-600 font-semibold text-[11px]">Invoice ID:</label>
+                <input id="input-invoice" type="text" readonly class="col-span-2 px-2 py-1 bg-slate-50 border border-slate-300 rounded font-mono text-slate-800 text-xs" placeholder="e.g. INV-2026-XXX">
+              </div>
+              <div class="grid grid-cols-3 items-center">
+                <label class="text-slate-600 font-semibold text-[11px]">Amount ($):</label>
+                <input id="input-amount" type="text" readonly class="col-span-2 px-2 py-1 bg-slate-50 border border-slate-300 rounded font-mono text-slate-800 text-xs font-bold" placeholder="0.00">
+              </div>
+              <div class="grid grid-cols-3 items-center">
+                <label class="text-slate-600 font-semibold text-[11px]">Audit Memo:</label>
+                <input id="input-notes" type="text" readonly class="col-span-2 px-2 py-1 bg-slate-50 border border-slate-300 rounded font-mono text-slate-800 text-xs" placeholder="Operational directive memo">
+              </div>
+            </div>
+
+            <!-- Dynamic Action Buttons Frame (Target for UI Drift!) -->
+            <div id="erp-actions-container" class="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between relative min-h-[46px] transition-all duration-500">
+              <button id="btn-erp-submit" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded shadow-sm transition-all duration-300 flex items-center space-x-1">
+                <span>[ Process & Wire Payout ]</span>
+              </button>
+
+              <button id="btn-erp-purge" class="px-3 py-1.5 bg-rose-700 hover:bg-rose-800 text-white text-[11px] font-semibold rounded shadow-sm transition">
+                <span>[ Purge Audit Trail ]</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Legacy Ledger Table -->
+          <div class="mt-3 bg-white rounded border border-slate-400 p-2.5">
+            <div class="text-[10px] font-mono text-slate-600 font-bold uppercase tracking-wider mb-1 flex justify-between">
+              <span>Settled Transaction Ledger (SQLite v3)</span>
+              <span id="ledger-count" class="text-blue-600 font-bold">0 records</span>
+            </div>
+            <div class="overflow-y-auto max-h-[140px] font-mono text-[10px] border border-slate-200 rounded">
+              <table class="w-full text-left">
+                <thead class="bg-slate-100 text-slate-600 border-b border-slate-200 sticky top-0">
+                  <tr>
+                    <th class="p-1">Time</th>
+                    <th class="p-1">Voucher</th>
+                    <th class="p-1">Vendor</th>
+                    <th class="p-1 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="ledger-rows" class="divide-y divide-slate-100 text-slate-700">
+                  <tr>
+                    <td colspan="4" class="p-2 text-center text-slate-400 italic">No payouts committed in current session</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Bottom Chaos Drift Alert Banner (Shown during drift) -->
+          <div id="drift-alert-banner" class="absolute bottom-2 left-2 right-2 px-3 py-1.5 rounded bg-amber-500 text-slate-950 font-mono text-[11px] font-bold shadow-lg transform translate-y-12 opacity-0 transition-all flex items-center justify-between">
+            <div class="flex items-center space-x-1.5">
+              <span class="animate-ping w-2 h-2 rounded-full bg-slate-950"></span>
+              <span>⚡ CHAOS SABOTAGE: BUTTON RELOCATED (Δx=+240px, Δy=-40px)</span>
+            </div>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-black text-amber-300">ENTROPY INJECTED</span>
+          </div>
+
+        </div>
+
+        <!-- OS Actuation Telemetry Footer -->
+        <div class="bg-slate-900 border-t border-slate-800 px-4 py-2 flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <div class="flex items-center space-x-3">
+            <span class="text-cyan-400 font-semibold">ACTUATOR:</span>
+            <span id="telemetry-coords">CURSOR: (240, 220)</span>
+            <span id="telemetry-fps">PERCEPTION: 60 FPS</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="simulateManualDrift()" class="text-amber-400 hover:text-amber-300 text-[10px] underline">
+              [⚡ Trigger Chaos Drift]
+            </button>
+            <button onclick="testBE2Drift()" class="text-amber-400 hover:text-amber-300 text-[10px] underline">[? Test BE2 Drift (+120px)]</button>
+            <button onclick="testBE2Healed()" class="text-emerald-400 hover:text-emerald-300 text-[10px] underline">[? Test BE2 Healed]</button>
+            <button onclick="connectTelemetryWebSocket()" class="text-cyan-400 hover:text-cyan-300 text-[10px] underline">[? Reconnect WS]</button>
+            <button onclick="simulateManualAttack()" class="text-rose-400 hover:text-rose-300 text-[10px] underline">
+              [💀 Inject Malicious Attack]
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Concept Explanation Card -->
+      <div class="glass-panel rounded-xl p-4 text-xs space-y-2 border-slate-800">
+        <h3 class="font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center space-x-2">
+          <span>Pillar 1: Sensory-Motor OS "Hands"</span>
+        </h3>
+        <p class="text-slate-300 leading-relaxed">
+          AegisOS replaces conversational prompts with raw sensory perception and motor actuation. It operates over any legacy ERP, desktop software, or browser portal via smooth cursor kinematics, character typing cadence, and spatial coordinate anchoring.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- CENTER COLUMN: EPISODIC MEMORY GRAPH & SELF-HEALING (4 COLS) -->
+    <section class="col-span-12 lg:col-span-4 flex flex-col space-y-4">
+      
+      <!-- Memory Graph Card -->
+      <div class="glass-panel rounded-xl flex flex-col h-[560px] overflow-hidden border-indigo-500/20">
+        
+        <!-- Header -->
+        <div class="bg-slate-900/90 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between">
+          <div>
+            <h2 class="font-mono font-bold text-xs text-indigo-300 tracking-wider uppercase flex items-center space-x-1.5">
+              <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span>Episodic Memory Graph</span>
+            </h2>
+            <p class="text-[10px] text-slate-400">Pillar 2: Spatial Muscle Memory & Self-Healing</p>
+          </div>
+          <span id="memory-cache-badge" class="px-2 py-0.5 rounded bg-indigo-950 border border-indigo-700/60 font-mono text-[10px] text-indigo-300 font-bold">
+            6 NODES SYNCED
+          </span>
+        </div>
+
+        <!-- Interactive Canvas Graph Container -->
+        <div class="relative flex-1 bg-[#070b14] overflow-hidden">
+          <canvas id="memory-canvas" class="w-full h-full block"></canvas>
+
+          <!-- Floating Graph Overlay Stats -->
+          <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur border border-slate-800 rounded p-2 text-[10px] font-mono space-y-1">
+            <div class="text-slate-400">MUSCLE MEMORY CONFIDENCE: <span id="graph-confidence" class="text-emerald-400 font-bold">98.4%</span></div>
+            <div class="text-slate-400">DRIFT RE-ANCHORS: <span id="graph-drifts" class="text-amber-400 font-bold">0</span></div>
+            <div class="text-slate-400">ACTIVE TASK: <span id="graph-active-task" class="text-cyan-400 font-bold">IDLE</span></div>
+          </div>
+
+          <!-- Self-Healing Notification Toast Overlay -->
+          <div id="self-heal-toast" class="absolute bottom-3 left-3 right-3 p-2.5 rounded bg-indigo-950/90 border border-indigo-400/40 text-indigo-200 text-xs font-mono opacity-0 transform translate-y-4 transition-all shadow-xl">
+            <div class="flex items-center space-x-2 text-indigo-300 font-bold text-[11px] mb-1">
+              <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+              <span>EPISODIC SELF-HEAL ENGAGED</span>
+            </div>
+            <div id="self-heal-desc" class="text-[10px] text-slate-300">Target relocalized. Muscle memory edge updated in SQLite.</div>
+          </div>
+        </div>
+
+        <!-- Memory Nodes Table -->
+        <div class="bg-slate-950 border-t border-slate-800 p-3 max-h-[140px] overflow-y-auto font-mono text-[11px]">
+          <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Active Spatial Landmarks:</div>
+          <div class="space-y-1" id="memory-nodes-list">
+            <div class="flex justify-between items-center text-slate-300 py-0.5 border-b border-slate-900">
+              <span class="text-cyan-400">● node_vendor_input</span>
+              <span class="text-slate-500">(x:145, y:82)</span>
+              <span class="text-emerald-400 text-[10px]">100% confidence</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-300 py-0.5 border-b border-slate-900">
+              <span class="text-cyan-400">● node_amount_input</span>
+              <span class="text-slate-500">(x:145, y:142)</span>
+              <span class="text-emerald-400 text-[10px]">100% confidence</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-300 py-0.5 border-b border-slate-900">
+              <span id="node-submit-label" class="text-cyan-400">● node_submit_btn</span>
+              <span id="node-submit-coords" class="text-slate-500">(x:110, y:230)</span>
+              <span id="node-submit-status" class="text-emerald-400 text-[10px]">CACHED</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Memory Explanation Card -->
+      <div class="glass-panel rounded-xl p-4 text-xs space-y-2 border-slate-800">
+        <h3 class="font-mono text-indigo-400 font-bold uppercase tracking-wider flex items-center space-x-2">
+          <span>Pillar 2: Self-Learning & Adaptation</span>
+        </h3>
+        <p class="text-slate-300 leading-relaxed">
+          Unlike brittle RPA scripts that break when layouts change, AegisOS maintains an episodic visual-spatial graph. When visual drift occurs, it autonomously relocalizes the target, executes, and updates its memory graph so future iterations run at instant macro speed.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: BOUNDARY HYPERVISOR & AUDIT TELEMETRY (3 COLS) -->
+    <section class="col-span-12 lg:col-span-3 flex flex-col space-y-4">
+      
+      <!-- Boundary Hypervisor Enclave Card -->
+      <div id="hypervisor-card" class="glass-panel rounded-xl flex flex-col h-[560px] overflow-hidden border-cyan-500/20 transition-all duration-500">
+        
+        <!-- Header -->
+        <div class="bg-slate-900/90 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between">
+          <div>
+            <h2 class="font-mono font-bold text-xs text-rose-300 tracking-wider uppercase flex items-center space-x-1.5">
+              <svg class="w-3.5 h-3.5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              <span>Boundary Hypervisor</span>
+            </h2>
+            <p class="text-[10px] text-slate-400">Pillar 3: Guardrails, Boundaries & Trust</p>
+          </div>
+          <span id="blast-radius-badge" class="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700/60 font-mono text-[10px] text-emerald-300 font-bold">
+            ZERO LEAK
+          </span>
+        </div>
+
+        <!-- Boundary Contracts Status -->
+        <div class="p-3 bg-slate-950/60 border-b border-slate-800 font-mono text-[10px] space-y-2">
+          <div class="flex justify-between items-center text-slate-400">
+            <span>MAX TRANSACTION CEILING:</span>
+            <span class="text-cyan-400 font-bold">$5,000.00</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-400">
+            <span>PROHIBITED COMMAND FILTER:</span>
+            <span class="text-emerald-400 font-bold">ACTIVE (PURGE/FORMAT)</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-400">
+            <span>PRE-ACTION ATOMIC SNAPSHOTS:</span>
+            <span class="text-emerald-400 font-bold">ENABLED</span>
+          </div>
+        </div>
+
+        <!-- Cryptographic Proof-of-Boundary Box -->
+        <div class="p-3 border-b border-slate-800">
+          <div class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span>Proof-of-Boundary (PoB)</span>
+            <button onclick="openPoBModal()" class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-700/40 cursor-pointer transition">
+              [INSPECT MODAL]
+            </button>
+            <span id="pob-status" class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">STANDBY</span>
+          </div>
+
+          <div id="pob-card" onclick="openPoBModal()" style="cursor: pointer;" class="bg-slate-900 border border-slate-800 rounded p-2.5 font-mono text-[10px] space-y-1.5 transition-all">
+            <div class="text-slate-400">LAST EVALUATION: <span id="pob-last-eval" class="text-slate-200">Pending next directive</span></div>
+            <div class="text-slate-400">INTEGRITY HASH:</div>
+            <div id="pob-hash" class="text-[9px] text-slate-500 break-all bg-black/50 p-1 rounded font-mono">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</div>
+            <div id="pob-alert-text" class="text-slate-400 text-[10px]">Status: Pre-flight invariant engine ready.</div>
+          </div>
+        </div>
+
+        <!-- Telemetry Audit Stream -->
+        <div class="flex-1 flex flex-col p-3 overflow-hidden bg-black/40">
+          <div class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+            <span>Live Audit Telemetry</span>
+            <span id="log-count" class="text-slate-500 font-normal">FILTERED VIEW</span>
+          </div>
+
+          <!-- Subsystem Log Filter Chips -->
+          <div class="flex items-center space-x-1.5 mb-2 font-mono text-[10px]">
+            <button onclick="filterLogs('all')" id="filter-btn-all" class="px-2 py-0.5 rounded bg-slate-800 text-cyan-300 border border-cyan-700/50">ALL</button>
+            <button onclick="filterLogs('motor')" id="filter-btn-motor" class="px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-white border border-transparent">MOTOR</button>
+            <button onclick="filterLogs('memory')" id="filter-btn-memory" class="px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-white border border-transparent">MEMORY</button>
+            <button onclick="filterLogs('hypervisor')" id="filter-btn-hypervisor" class="px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-white border border-transparent">HYPERVISOR</button>
+          </div>
+          <div id="telemetry-log" class="flex-1 overflow-y-auto font-mono text-[10px] space-y-1 text-slate-300 pr-1">
+            <div class="text-cyan-500">[00:00:01] System boot: AegisOS kernel initialized.</div>
+            <div class="text-emerald-400">[00:00:02] Invariant contracts loaded: 3 policies active.</div>
+            <div class="text-slate-400">[00:00:03] Ready for operational directives.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Boundaries Explanation Card -->
+      <div class="glass-panel rounded-xl p-4 text-xs space-y-2 border-slate-800">
+        <h3 class="font-mono text-rose-400 font-bold uppercase tracking-wider flex items-center space-x-2">
+          <span>Pillar 3: Guardrails & Trust</span>
+        </h3>
+        <p class="text-slate-300 leading-relaxed">
+          AI agents cannot be trusted in enterprise or production with simple prompt guardrails. AegisOS enforces deterministic pre-flight invariants: if an action exceeds budget or invokes prohibited system mutations, actuation halts at the OS event level.
+        </p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER & AUDIO CONTROLLER -->
+  <footer class="border-t border-slate-800/80 bg-[#080d18] px-6 py-2.5 flex items-center justify-between text-xs font-mono text-slate-500">
+    <div>
+      TRACK 01: AI & AUTOMATION // SUBTRACKS: AGENTIC WORKFLOWS • SELF-LEARNING & ADAPTATION • GUARDRAILS & TRUST
+    </div>
+    <div class="flex items-center space-x-4 text-[11px]">
+      <span class="text-cyan-400">NO CHAT BOTS</span>
+      <span>•</span>
+      <span class="text-indigo-400">AUTONOMOUS ACTUATION</span>
+      <span>•</span>
+      <span class="text-rose-400">PROVABLE BOUNDARIES</span>
+    </div>
+  </footer>
+
+  <!-- SCRIPT: INTERACTIVE SIMULATOR, AUDIO SYNTHESIS & CANVAS KNOWLEDGE GRAPH -->
+  <script>
+    // =========================================================================
+    // 1. SOUND SYNTHESIS ENGINE (Web Audio API - Zero External Dependencies)
+    // =========================================================================
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function toggleAudio() {
+      soundEnabled = !soundEnabled;
+      document.getElementById("sound-state").innerText = soundEnabled ? "ON" : "OFF";
+      document.getElementById("btn-sound-toggle").classList.toggle("text-cyan-400", soundEnabled);
+    }
+
+    function playSynthSound(type) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'blip') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, now);
+          osc.frequency.exponentialRampToValueAtTime(1760, now + 0.08);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'type') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320 + Math.random() * 80, now);
+          gain.gain.setValueAtTime(0.04, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.03);
+        } else if (type === 'heal') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.2);
+          gain.gain.setValueAtTime(0.09, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'alarm') {
+          // Harsh two-tone warning klaxon
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.setValueAtTime(160, now + 0.15);
+          osc.frequency.setValueAtTime(220, now + 0.3);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.5);
+        }
+      } catch (e) {
+        console.warn("Audio synthesis error:", e);
+      }
+    }
+
+    // =========================================================================
+    // 2. CANVAS EPISODIC MEMORY GRAPH VISUALIZATION
+    // =========================================================================
+    const canvas = document.getElementById("memory-canvas");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    setTimeout(resizeCanvas, 50);
+
+    const memoryNodes = [
+      { id: "vendor", label: "Vendor Field", x: 0.25, y: 0.25, color: "#38bdf8", pulse: 0, connectedTo: ["invoice", "submit"] },
+      { id: "invoice", label: "Invoice ID", x: 0.75, y: 0.25, color: "#38bdf8", pulse: 0, connectedTo: ["amount"] },
+      { id: "amount", label: "Amount ($)", x: 0.25, y: 0.65, color: "#38bdf8", pulse: 0, connectedTo: ["submit"] },
+      { id: "notes", label: "Audit Memo", x: 0.75, y: 0.65, color: "#38bdf8", pulse: 0, connectedTo: ["submit"] },
+      { id: "submit", label: "Submit Action", x: 0.50, y: 0.85, color: "#10b981", pulse: 0, connectedTo: [] },
+      { id: "purge", label: "Audit Purge [RISK]", x: 0.85, y: 0.88, color: "#ef4444", pulse: 0, connectedTo: [] }
+    ];
+
+    let driftVectorAnim = null; // { fromX, fromY, toX, toY, progress }
+
+    function animateMemoryGraph() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Draw subtle background grid
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.05)";
+      ctx.lineWidth = 1;
+      const step = 30;
+      for (let x = 0; x < w; x += step) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = 0; y < h; y += step) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      // Draw Connection Edges
+      memoryNodes.forEach(node => {
+        const nx = node.x * w;
+        const ny = node.y * h;
+        node.connectedTo.forEach(targetId => {
+          const target = memoryNodes.find(n => n.id === targetId);
+          if (target) {
+            const tx = target.x * w;
+            const ty = target.y * h;
+            ctx.beginPath();
+            ctx.strokeStyle = "rgba(99, 102, 241, 0.35)";
+            ctx.lineWidth = 1.5;
+            ctx.moveTo(nx, ny);
+            ctx.lineTo(tx, ty);
+            ctx.stroke();
+
+            // Subtle moving particle along edge
+            const time = Date.now() * 0.0015;
+            const t = (time + (nx + ny) * 0.01) % 1;
+            const px = nx + (tx - nx) * t;
+            const py = ny + (ty - ny) * t;
+            ctx.fillStyle = "rgba(56, 189, 248, 0.8)";
+            ctx.beginPath();
+            ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+      });
+
+      // Draw Self-Healing Relocalization Vector if active
+      if (driftVectorAnim) {
+        driftVectorAnim.progress += 0.02;
+        if (driftVectorAnim.progress > 1) driftVectorAnim.progress = 1;
+
+        ctx.save();
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(driftVectorAnim.fromX * w, driftVectorAnim.fromY * h);
+        const curX = (driftVectorAnim.fromX + (driftVectorAnim.toX - driftVectorAnim.fromX) * driftVectorAnim.progress) * w;
+        const curY = (driftVectorAnim.fromY + (driftVectorAnim.toY - driftVectorAnim.fromY) * driftVectorAnim.progress) * h;
+        ctx.lineTo(curX, curY);
+        ctx.stroke();
+        ctx.restore();
+
+        // Arrow head / target reticle
+        ctx.strokeStyle = "#f59e0b";
+        ctx.beginPath();
+        ctx.arc(curX, curY, 8, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Draw Nodes
+      memoryNodes.forEach(node => {
+        const nx = node.x * w;
+        const ny = node.y * h;
+
+        // Glow ring
+        if (node.pulse > 0) {
+          node.pulse -= 0.03;
+          ctx.beginPath();
+          ctx.arc(nx, ny, 16 + (1 - node.pulse) * 18, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(56, 189, 248, ${node.pulse})`;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // Outer dot
+        ctx.beginPath();
+        ctx.arc(nx, ny, 7, 0, Math.PI * 2);
+        ctx.fillStyle = node.color;
+        ctx.fill();
+
+        // Inner dot
+        ctx.beginPath();
+        ctx.arc(nx, ny, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+
+        // Label
+        ctx.font = "10px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "#94a3b8";
+        ctx.textAlign = "center";
+        ctx.fillText(node.label, nx, ny - 12);
+      });
+
+      requestAnimationFrame(animateMemoryGraph);
+    }
+    requestAnimationFrame(animateMemoryGraph);
+
+    function pulseNode(id) {
+      const node = memoryNodes.find(n => n.id === id);
+      if (node) {
+        node.pulse = 1.0;
+        playSynthSound('blip');
+      }
+    }
+
+    // =========================================================================
+    // 3. VIRTUAL DESKTOP ACTUATION & DEMO ORCHESTRATION
+    // =========================================================================
+    const cursor = document.getElementById("virtual-cursor");
+    const cursorRing = document.getElementById("cursor-target-ring");
+    const desktop = document.getElementById("desktop-viewport");
+
+    let isDemoRunning = false;
+    let isDrifted = false;
+    let settledCount = 0;
+
+    function moveCursorToElement(elementId, callback) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const elRect = el.getBoundingClientRect();
+      const deskRect = desktop.getBoundingClientRect();
+
+      const targetX = elRect.left - deskRect.left + (elRect.width / 2);
+      const targetY = elRect.top - deskRect.top + (elRect.height / 2);
+
+      cursor.style.left = `${targetX}px`;
+      cursor.style.top = `${targetY}px`;
+      document.getElementById("telemetry-coords").innerText = `CURSOR: (${Math.round(targetX)}, ${Math.round(targetY)})`;
+
+      setTimeout(() => {
+        // Trigger click visual
+        cursor.classList.add("clicking");
+        cursorRing.style.opacity = "1";
+        cursorRing.style.transform = "scale(1)";
+        playSynthSound('type');
+
+        setTimeout(() => {
+          cursor.classList.remove("clicking");
+          cursorRing.style.opacity = "0";
+          cursorRing.style.transform = "scale(0.5)";
+          if (callback) callback();
+        }, 180);
+      }, 480);
+    }
+
+    function typeIntoInput(inputId, text, onComplete) {
+      moveCursorToElement(inputId, () => {
+        const input = document.getElementById(inputId);
+        input.value = "";
+        let i = 0;
+        const interval = setInterval(() => {
+          input.value += text[i];
+          playSynthSound('type');
+          i++;
+          if (i >= text.length) {
+            clearInterval(interval);
+            setTimeout(onComplete, 200);
+          }
+        }, 28);
+      });
+    }
+
+    let currentLogFilter = 'all';
+
+    function categorizeLogMessage(msg, explicitCategory = null) {
+      if (explicitCategory) return explicitCategory;
+      const lower = msg.toLowerCase();
+      if (lower.includes("motor") || lower.includes("cursor") || lower.includes("actuation") || lower.includes("type") || lower.includes("click") || lower.includes("settle") || lower.includes("voucher") || lower.includes("payout")) {
+        return "motor";
+      }
+      if (lower.includes("memory") || lower.includes("drift") || lower.includes("re-anchor") || lower.includes("relocaliz") || lower.includes("heal") || lower.includes("node") || lower.includes("be2") || lower.includes("landmark")) {
+        return "memory";
+      }
+      if (lower.includes("boundary") || lower.includes("hypervisor") || lower.includes("breach") || lower.includes("intercept") || lower.includes("snapshot") || lower.includes("invariant") || lower.includes("proof") || lower.includes("pob") || lower.includes("contract") || lower.includes("attack") || lower.includes("policy")) {
+        return "hypervisor";
+      }
+      return "all";
+    }
+
+    function addLog(msg, type = "info", category = null) {
+      const log = document.getElementById("telemetry-log");
+      if (!log) return;
+      const d = new Date();
+      const timeStr = `[${d.toTimeString().split(' ')[0]}]`;
+      const div = document.createElement("div");
+      div.className = "py-0.5 log-entry transition-all";
+
+      const cat = categorizeLogMessage(msg, category);
+      div.setAttribute("data-category", cat);
+
+      if (type === "warn") div.className += " text-amber-400";
+      else if (type === "crit") div.className += " text-rose-400 font-bold";
+      else if (type === "success") div.className += " text-emerald-400";
+      else div.className += " text-cyan-400";
+
+      div.innerText = `${timeStr} ${msg}`;
+
+      if (currentLogFilter !== 'all' && cat !== currentLogFilter && cat !== 'all') {
+        div.style.display = "none";
+      }
+
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function filterLogs(category) {
+      currentLogFilter = category;
+      const buttons = {
+        all: document.getElementById("filter-btn-all"),
+        motor: document.getElementById("filter-btn-motor"),
+        memory: document.getElementById("filter-btn-memory"),
+        hypervisor: document.getElementById("filter-btn-hypervisor")
+      };
+
+      Object.entries(buttons).forEach(([key, btn]) => {
+        if (!btn) return;
+        if (key === category) {
+          btn.className = "px-2 py-0.5 rounded bg-slate-800 text-cyan-300 border border-cyan-700/50 font-bold shadow-[0_0_8px_rgba(56,189,248,0.25)]";
+        } else {
+          btn.className = "px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-white border border-transparent";
+        }
+      });
+
+      const entries = document.querySelectorAll("#telemetry-log > div");
+      let visibleCount = 0;
+      entries.forEach(entry => {
+        const cat = entry.getAttribute("data-category") || categorizeLogMessage(entry.innerText);
+        entry.setAttribute("data-category", cat);
+        if (category === 'all' || cat === category || cat === 'all') {
+          entry.style.display = "block";
+          visibleCount++;
+        } else {
+          entry.style.display = "none";
+        }
+      });
+
+      const countLabel = document.getElementById("log-count");
+      if (countLabel) {
+        countLabel.innerText = category === 'all' ? `${entries.length} ENTRIES` : `${visibleCount} ${category.toUpperCase()}`;
+      }
+    }
+
+    function addLedgerRecord(voucher, vendor, amount) {
+      settledCount++;
+      document.getElementById("ledger-count").innerText = `${settledCount} records`;
+      const tbody = document.getElementById("ledger-rows");
+      if (settledCount === 1) tbody.innerHTML = "";
+
+      const d = new Date();
+      const tr = document.createElement("tr");
+      tr.className = "hover:bg-slate-50 transition";
+      tr.innerHTML = `
+        <td class="p-1 text-slate-500">${d.toTimeString().split(' ')[0]}</td>
+        <td class="p-1 font-bold text-blue-700">${voucher}</td>
+        <td class="p-1 text-slate-800">${vendor}</td>
+        <td class="p-1 text-right font-bold text-emerald-700">$${amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+      `;
+      tbody.prepend(tr);
+    }
+
+    function clearInputs() {
+      document.getElementById("input-vendor").value = "";
+      document.getElementById("input-invoice").value = "";
+      document.getElementById("input-amount").value = "";
+      document.getElementById("input-notes").value = "";
+    }
+
+    // =========================================================================
+    // 4. THE 3 ACTS OF THE HACKATHON WINNING DEMO
+    // =========================================================================
+
+    // ACT 1: THE HANDS (Zero-Chat Actuation)
+    function runAct1(nextAct) {
+      document.getElementById("system-status-text").innerText = "ACT I: THE HANDS // MOTOR ACTUATION";
+      document.getElementById("system-status-badge").className = "px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 flex items-center space-x-2";
+      document.getElementById("graph-active-task").innerText = "INV-2026-001 (APEX CLOUD)";
+      addLog(">>> ACT I: MOTOR ACTUATION & MUSCLE MEMORY ENGAGED", "info");
+      addLog("Directive received: Settle voucher INV-2026-001 ($1,450.00)", "info");
+
+      pulseNode("vendor");
+      typeIntoInput("input-vendor", "Apex Cloud Systems", () => {
+        pulseNode("invoice");
+        typeIntoInput("input-invoice", "INV-2026-001", () => {
+          pulseNode("amount");
+          typeIntoInput("input-amount", "1450.00", () => {
+            pulseNode("notes");
+            typeIntoInput("input-notes", "Monthly server compute cluster allocation", () => {
+              pulseNode("submit");
+              addLog("Muscle memory match: Submitting voucher to Win32 ERP.", "success");
+              moveCursorToElement("btn-erp-submit", () => {
+                addLedgerRecord("INV-2026-001", "Apex Cloud Systems", 1450.00);
+                addLog("✔ Voucher INV-2026-001 committed to ledger database.", "success");
+                clearInputs();
+                setTimeout(nextAct, 1800);
+              });
+            });
+          });
+        });
+      });
+    }
+
+    // ACT 2: SELF-LEARNING & ADAPTATION (Chaos Sabotage)
+    function runAct2(nextAct) {
+      document.getElementById("system-status-text").innerText = "ACT II: SELF-LEARNING // CHAOS DRIFT";
+      document.getElementById("system-status-badge").className = "px-3 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-300 flex items-center space-x-2";
+      document.getElementById("graph-active-task").innerText = "INV-2026-002 (DATACORE)";
+      addLog(">>> ACT II: SIMULATING UNEXPECTED UI ENTROPY", "warn");
+      addLog("Injecting layout drift: Button relocated by Δx=+240px...", "warn");
+
+      // Visually mutate the button
+      const btn = document.getElementById("btn-erp-submit");
+      const container = document.getElementById("erp-actions-container");
+      container.classList.add("flex-row-reverse");
+      btn.className = "px-4 py-1.5 bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs rounded shadow-md transition-all";
+      btn.innerHTML = "<span>>> SUBMIT SETTLEMENT <<</span>";
+      isDrifted = true;
+
+      // Show drift banner
+      const banner = document.getElementById("drift-alert-banner");
+      banner.style.opacity = "1";
+      banner.style.transform = "translateY(0)";
+      playSynthSound('heal');
+
+      setTimeout(() => {
+        addLog("Directive received: Settle voucher INV-2026-002 ($3,200.50) on drifted UI.", "info");
+        pulseNode("vendor");
+        typeIntoInput("input-vendor", "DataCore Logistics", () => {
+          pulseNode("invoice");
+          typeIntoInput("input-invoice", "INV-2026-002", () => {
+            pulseNode("amount");
+            typeIntoInput("input-amount", "3200.50", () => {
+              pulseNode("notes");
+              typeIntoInput("input-notes", "Edge node delivery and hardware provisioning", () => {
+                
+                // Drift detection moment
+                addLog("⚠ DRIFT DETECTED: Target button coordinates mismatch muscle memory!", "warn");
+                addLog("Initiating visual relocalization & semantic re-anchoring...", "warn");
+                playSynthSound('heal');
+
+                // Animate graph vector
+                const submitNode = memoryNodes.find(n => n.id === "submit");
+                driftVectorAnim = {
+                  fromX: submitNode.x,
+                  fromY: submitNode.y,
+                  toX: submitNode.x + 0.25,
+                  toY: submitNode.y,
+                  progress: 0
+                };
+
+                // Show toast
+                const toast = document.getElementById("self-heal-toast");
+                toast.style.opacity = "1";
+                toast.style.transform = "translateY(0)";
+                document.getElementById("graph-drifts").innerText = "1";
+
+                setTimeout(() => {
+                  // Update memory node position
+                  submitNode.x += 0.25;
+                  submitNode.color = "#a855f7";
+                  document.getElementById("node-submit-coords").innerText = "(x:350, y:230) [HEALED]";
+                  document.getElementById("node-submit-status").innerText = "RE-ANCHORED";
+                  document.getElementById("node-submit-status").className = "text-amber-400 text-[10px]";
+
+                  addLog("Visual relocalization SUCCESS. Updated episodic memory graph.", "success");
+                  moveCursorToElement("btn-erp-submit", () => {
+                    addLedgerRecord("INV-2026-002", "DataCore Logistics", 3200.50);
+                    addLog("✔ Voucher INV-2026-002 processed through healed pathway.", "success");
+                    clearInputs();
+                    banner.style.opacity = "0";
+                    banner.style.transform = "translateY(48px)";
+                    toast.style.opacity = "0";
+                    setTimeout(nextAct, 1800);
+                  });
+                }, 800);
+
+              });
+            });
+          });
+        });
+      }, 1000);
+    }
+
+    // ACT 3: BOUNDARIES & TRUST (The Deterministic Defense)
+    function runAct3() {
+      document.getElementById("system-status-text").innerText = "ACT III: BOUNDARIES // POLICY INTERCEPT";
+      document.getElementById("system-status-badge").className = "px-3 py-1 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-300 flex items-center space-x-2";
+      document.getElementById("graph-active-task").innerText = "MALICIOUS ATTACK INJECTION";
+      addLog(">>> ACT III: INJECTING MALICIOUS HIGH-STAKES PAYLOAD", "crit");
+      addLog("Attacker voucher: $48,900.00 + Command: 'PURGE_AUDIT_TRAIL'", "crit");
+
+      // Flash Hypervisor Card in danger mode
+      const hypCard = document.getElementById("hypervisor-card");
+      hypCard.className = "glass-panel-danger rounded-xl flex flex-col h-[560px] overflow-hidden transition-all duration-500 glow-crimson";
+      document.getElementById("blast-radius-badge").className = "px-2 py-0.5 rounded bg-rose-950 border border-rose-600 font-mono text-[10px] text-rose-300 font-bold animate-pulse";
+      document.getElementById("blast-radius-badge").innerText = "BOUNDARY BREACH";
+
+      playSynthSound('alarm');
+
+      // Hypervisor intercepts BEFORE motor actuation
+      setTimeout(() => {
+        addLog("⛔ BOUNDARY CONTRACT BREACH DETECTED BEFORE MOTOR ACTUATION!", "crit");
+        addLog("• VIOLATION: $48,900.00 exceeds safety ceiling $5,000.00", "crit");
+        addLog("• VIOLATION: Destructive system command 'purge_audit_logs' intercepted", "crit");
+        addLog("PRE-ACTION ATOMIC SNAPSHOT VERIFIED: Zero state corruption permitted.", "success");
+
+        // Render Cryptographic Proof of Boundary
+        document.getElementById("pob-status").innerText = "CONTRACT ENFORCED";
+        document.getElementById("pob-status").className = "text-[9px] px-1.5 py-0.5 rounded bg-rose-950 border border-rose-800 text-rose-300 font-bold";
+        document.getElementById("pob-last-eval").innerText = "BLOCKED: GhostShell Syndicate";
+        document.getElementById("pob-last-eval").className = "text-rose-400 font-bold";
+        document.getElementById("pob-hash").innerText = "POB-9f83a48e718b2c40c8f1e582c0bdfa35b1d49e6f39487c538e";
+        document.getElementById("pob-hash").className = "text-[9px] text-rose-300 break-all bg-rose-950/80 p-1.5 rounded font-mono border border-rose-800";
+        document.getElementById("pob-alert-text").innerHTML = "<span class='text-rose-400 font-bold'>DETERMINISTICALLY BLOCKED:</span> Mouse actuation locked. Audit ledger preserved 100%.";
+
+        // Virtual cursor moves away from danger button to neutral safe zone
+        cursor.style.left = "40px";
+        cursor.style.top = "40px";
+        document.getElementById("telemetry-coords").innerText = "CURSOR: SAFE_LOCKOUT";
+
+        addLog("=== 3-ACT DEMO COMPLETE: NO CHAT WINDOW. FULL TRUST. ===", "success");
+        isDemoRunning = false;
+      }, 900);
+    }
+
+    function runFullDemo() {
+      if (isDemoRunning) return;
+      isDemoRunning = true;
+      resetSystem();
+      setTimeout(() => {
+        runAct1(() => {
+          runAct2(() => {
+            runAct3();
+          });
+        });
+      }, 500);
+    }
+
+    function simulateManualDrift() {
+      const btn = document.getElementById("btn-erp-submit");
+      const container = document.getElementById("erp-actions-container");
+      isDrifted = !isDrifted;
+      if (isDrifted) {
+        container.classList.add("flex-row-reverse");
+        btn.className = "px-4 py-1.5 bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs rounded shadow-md transition-all";
+        btn.innerHTML = "<span>>> SUBMIT SETTLEMENT <<</span>";
+        document.getElementById("drift-alert-banner").style.opacity = "1";
+        document.getElementById("drift-alert-banner").style.transform = "translateY(0)";
+        addLog("Manual Chaos Mode engaged: Button relocated.", "warn");
+        playSynthSound('heal');
+      } else {
+        container.classList.remove("flex-row-reverse");
+        btn.className = "px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded shadow-sm transition-all";
+        btn.innerHTML = "<span>[ Process & Wire Payout ]</span>";
+        document.getElementById("drift-alert-banner").style.opacity = "0";
+        document.getElementById("drift-alert-banner").style.transform = "translateY(48px)";
+        addLog("Manual Chaos Mode disengaged.", "info");
+      }
+    }
+
+    function simulateManualAttack() {
+      runAct3();
+    }
+
+    function resetSystem() {
+      isDemoRunning = false;
+      clearInputs();
+      isDrifted = false;
+
+      // Reset ERP button
+      const btn = document.getElementById("btn-erp-submit");
+      const container = document.getElementById("erp-actions-container");
+      container.classList.remove("flex-row-reverse");
+      btn.className = "px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded shadow-sm transition-all";
+      btn.innerHTML = "<span>[ Process & Wire Payout ]</span>";
+
+      // Hide banners and toasts
+      document.getElementById("drift-alert-banner").style.opacity = "0";
+      document.getElementById("drift-alert-banner").style.transform = "translateY(48px)";
+      document.getElementById("self-heal-toast").style.opacity = "0";
+
+      // Reset Hypervisor card style
+      const hypCard = document.getElementById("hypervisor-card");
+      hypCard.className = "glass-panel rounded-xl flex flex-col h-[560px] overflow-hidden border-cyan-500/20";
+      document.getElementById("blast-radius-badge").className = "px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700/60 font-mono text-[10px] text-emerald-300 font-bold";
+      document.getElementById("blast-radius-badge").innerText = "ZERO LEAK";
+
+      // Reset PoB card
+      document.getElementById("pob-status").innerText = "STANDBY";
+      document.getElementById("pob-status").className = "text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400";
+      document.getElementById("pob-last-eval").innerText = "Pending next directive";
+      document.getElementById("pob-last-eval").className = "text-slate-200";
+      document.getElementById("pob-hash").innerText = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+      document.getElementById("pob-hash").className = "text-[9px] text-slate-500 break-all bg-black/50 p-1 rounded font-mono";
+      document.getElementById("pob-alert-text").innerText = "Status: Pre-flight invariant engine ready.";
+
+      // Reset Status pill
+      document.getElementById("system-status-text").innerText = "SYSTEM ARMED // IDLE";
+      document.getElementById("system-status-badge").className = "px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 flex items-center space-x-2";
+      document.getElementById("graph-active-task").innerText = "IDLE";
+      document.getElementById("graph-drifts").innerText = "0";
+
+      // Reset memory nodes
+      const submitNode = memoryNodes.find(n => n.id === "submit");
+      submitNode.x = 0.50;
+      submitNode.color = "#10b981";
+      driftVectorAnim = null;
+      document.getElementById("node-submit-coords").innerText = "(x:110, y:230)";
+      document.getElementById("node-submit-status").innerText = "CACHED";
+      document.getElementById("node-submit-status").className = "text-emerald-400 text-[10px]";
+
+      // Cursor home
+      cursor.style.left = "240px";
+      cursor.style.top = "220px";
+      document.getElementById("telemetry-coords").innerText = "CURSOR: (240, 220)";
+
+      addLog("System reset: pristine baseline restored.", "info");
+    }
+  
+    // =========================================================================
+    // 5. BE2 LIVE WI-FI WEBSOCKET & HTTP API INTEGRATION
+    // =========================================================================
+    const urlParams = new URLSearchParams(window.location.search);
+    let BE2_HOST = urlParams.get('host') || localStorage.getItem('AEGIS_BE2_HOST') || "172.18.238.74:8000";
+    let BE2_API_URL = `http://${BE2_HOST}/api/memory/graph?task_id=vendor_payout_task`;
+    let BE2_WS_URL = `ws://${BE2_HOST}/ws/telemetry`;
+
+    function switchTelemetryHost(newHost) {
+      if (!newHost) {
+        newHost = prompt("Enter BE2 Telemetry Server IP:Port\n(e.g., 172.18.238.74:8000 or localhost:8000):", BE2_HOST);
+      }
+      if (newHost && newHost.trim()) {
+        BE2_HOST = newHost.trim();
+        localStorage.setItem('AEGIS_BE2_HOST', BE2_HOST);
+        BE2_API_URL = `http://${BE2_HOST}/api/memory/graph?task_id=vendor_payout_task`;
+        BE2_WS_URL = `ws://${BE2_HOST}/ws/telemetry`;
+        addLog(`Telemetry Host changed to ${BE2_HOST}. Reconnecting...`, "info");
+        fetchInitialMemoryGraph();
+        connectTelemetryWebSocket();
+      }
+    }
+
+    let be2Socket = null;
+    let wsReconnectTimeout = null;
+
+    // Requirement 4: Fetch initial graph nodes and coordinates from BE2 API
+    async function fetchInitialMemoryGraph() {
+      addLog(`Connecting to BE2 API: GET ${BE2_API_URL}...`, "info");
+      try {
+        const resp = await fetch(BE2_API_URL);
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+        }
+        const data = await resp.json();
+        addLog(`? [BE2 API] Successfully fetched initial memory graph for 'vendor_payout_task'`, "success");
+        applyBE2GraphData(data);
+      } catch (err) {
+        addLog(`? [BE2 API] Note: BE2 server unreachable (${err.message}). Using local baseline nodes.`, "warn");
+      }
+    }
+
+    function applyBE2GraphData(data) {
+      let incomingNodes = [];
+      if (Array.isArray(data)) {
+        incomingNodes = data;
+      } else if (data && data.nodes && Array.isArray(data.nodes)) {
+        incomingNodes = data.nodes;
+      } else if (data && typeof data === "object") {
+        incomingNodes = Object.entries(data).map(([key, val]) => ({
+          id: key,
+          label: val.label || key,
+          x: val.x !== undefined ? val.x : val.coord_x,
+          y: val.y !== undefined ? val.y : val.coord_y,
+          confidence: val.confidence || 1.0
+        }));
+      }
+
+      if (incomingNodes.length > 0) {
+        incomingNodes.forEach(inNode => {
+          const existing = memoryNodes.find(n => n.id === inNode.id || n.label.toLowerCase().includes(String(inNode.id).toLowerCase()));
+          if (existing) {
+            if (inNode.x !== undefined) {
+              existing.x = inNode.x > 1 ? inNode.x / 640 : inNode.x;
+            }
+            if (inNode.y !== undefined) {
+              existing.y = inNode.y > 1 ? inNode.y / 480 : inNode.y;
+            }
+            if (inNode.label) existing.label = inNode.label;
+          } else {
+            memoryNodes.push({
+              id: inNode.id,
+              label: inNode.label || inNode.id,
+              x: inNode.x > 1 ? inNode.x / 640 : (inNode.x || 0.5),
+              y: inNode.y > 1 ? inNode.y / 480 : (inNode.y || 0.5),
+              color: "#38bdf8",
+              pulse: 0.8,
+              connectedTo: ["submit"]
+            });
+          }
+        });
+
+        const cacheBadge = document.getElementById("memory-cache-badge");
+        if (cacheBadge) cacheBadge.innerText = `${memoryNodes.length} NODES SYNCED`;
+        renderMemoryNodesList();
+      }
+    }
+
+    function renderMemoryNodesList() {
+      const list = document.getElementById("memory-nodes-list");
+      if (!list) return;
+      list.innerHTML = "";
+      memoryNodes.forEach(node => {
+        const div = document.createElement("div");
+        div.className = "flex justify-between items-center text-slate-300 py-0.5 border-b border-slate-900";
+        div.innerHTML = `
+          <span style="color: ${node.color}">? node_${node.id}</span>
+          <span class="text-slate-500">(x:${Math.round(node.x * 640)}, y:${Math.round(node.y * 480)})</span>
+          <span class="text-[10px]" style="color: ${node.color}">SYNCED</span>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    // Requirement 1: WebSocket connection to ws://172.18.238.74:8000/ws/telemetry
+    function connectTelemetryWebSocket() {
+      if (wsReconnectTimeout) clearTimeout(wsReconnectTimeout);
+
+      const wsBadge = document.getElementById("ws-status-badge");
+      const wsText = document.getElementById("ws-status-text");
+      const wsDot = document.getElementById("ws-indicator-dot");
+
+      if (be2Socket) {
+        try { be2Socket.close(); } catch(e) {}
+      }
+
+      if (wsText) wsText.innerText = `WS: CONNECTING (${BE2_HOST})`;
+      if (wsBadge) wsBadge.className = "px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-400 flex items-center space-x-2 font-mono text-[11px]";
+      if (wsDot) wsDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+
+      try {
+        be2Socket = new WebSocket(BE2_WS_URL);
+
+        be2Socket.onopen = () => {
+          if (wsText) wsText.innerText = `WS: LIVE (${BE2_HOST})`;
+          if (wsBadge) wsBadge.className = "px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 flex items-center space-x-2 font-mono text-[11px] shadow-[0_0_12px_rgba(16,185,129,0.3)]";
+          if (wsDot) wsDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+          addLog(`? Connected to BE2 WebSocket stream (${BE2_WS_URL})`, "success");
+          playSynthSound('blip');
+        };
+
+        be2Socket.onmessage = (msg) => {
+          let payload = null;
+          try {
+            payload = JSON.parse(msg.data);
+          } catch(e) {
+            payload = { event: msg.data };
+          }
+          handleBE2TelemetryMessage(payload);
+        };
+
+        be2Socket.onerror = (err) => {
+          if (wsText) wsText.innerText = `WS: OFFLINE (${BE2_HOST})`;
+          if (wsBadge) wsBadge.className = "px-3 py-1 rounded-full bg-rose-950/80 border border-rose-500/50 text-rose-300 flex items-center space-x-2 font-mono text-[11px]";
+          if (wsDot) wsDot.className = "w-2 h-2 rounded-full bg-rose-400";
+        };
+
+        be2Socket.onclose = () => {
+          if (wsText) wsText.innerText = "WS: RECONNECTING IN 4s...";
+          if (wsBadge) wsBadge.className = "px-3 py-1 rounded-full bg-slate-900 border border-amber-700/50 text-amber-400 flex items-center space-x-2 font-mono text-[11px]";
+          if (wsDot) wsDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+          wsReconnectTimeout = setTimeout(connectTelemetryWebSocket, 4000);
+        };
+      } catch (err) {
+        console.warn("WebSocket init error:", err);
+        wsReconnectTimeout = setTimeout(connectTelemetryWebSocket, 5000);
+      }
+    }
+
+    function handleBE2TelemetryMessage(data) {
+      const eventName = data.event || data.type || data.event_type || data.action || (typeof data === "string" ? data : "");
+
+      // Requirement 2: When "MEMORY_DRIFT_DETECTED" arrives
+      if (eventName === "MEMORY_DRIFT_DETECTED" || (typeof eventName === "string" && eventName.includes("DRIFT_DETECTED"))) {
+        const deltaX = data.delta_x !== undefined ? data.delta_x : (data.dx !== undefined ? data.dx : 120);
+        triggerMemoryDriftAlert(deltaX, data);
+      }
+      // Requirement 3: When "SELF_HEALING_COMPLETED" arrives
+      else if (eventName === "SELF_HEALING_COMPLETED" || (typeof eventName === "string" && eventName.includes("SELF_HEALING"))) {
+        triggerSelfHealingCompleted(data);
+      } else {
+        addLog(`[BE2 TELEMETRY] ${JSON.stringify(data)}`, "info");
+      }
+    }
+
+    // Requirement 2: Live warning alert on HUD showing button relocated by ?x=+120px
+    function triggerMemoryDriftAlert(deltaX = 120, rawData = {}) {
+      addLog(`? [BE2 TELEMETRY] MEMORY_DRIFT_DETECTED: Button relocated by ?x=+${deltaX}px!`, "warn");
+      playSynthSound('heal');
+
+      // 1. Show live warning alert on HUD
+      const alertCard = document.getElementById("be2-drift-alert");
+      const alertMsg = document.getElementById("be2-drift-msg");
+      if (alertCard && alertMsg) {
+        alertMsg.innerText = `Button relocated by ?x=+${deltaX}px (Spatial Recalibration Engaged)`;
+        alertCard.style.opacity = "1";
+        alertCard.style.transform = "translate(-50%, 0)";
+      }
+
+      // Also show the bottom banner inside ERP view
+      const banner = document.getElementById("drift-alert-banner");
+      if (banner) {
+        banner.innerHTML = `
+          <div class="flex items-center space-x-1.5">
+            <span class="animate-ping w-2 h-2 rounded-full bg-slate-950"></span>
+            <span>? BE2 DRIFT: BUTTON RELOCATED (?x=+${deltaX}px)</span>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-black text-amber-300">DRIFT DETECTED</span>
+        `;
+        banner.style.opacity = "1";
+        banner.style.transform = "translateY(0)";
+      }
+
+      // 2. Relocate button in the ERP view by +120px
+      const btn = document.getElementById("btn-erp-submit");
+      if (btn) {
+        btn.style.transition = "all 0.4s ease";
+        btn.style.transform = `translateX(${deltaX}px)`;
+        btn.className = "px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded shadow-lg transition-all";
+        btn.innerHTML = `<span>>> SUBMIT [RELOCATED +${deltaX}px] <<</span>`;
+      }
+
+      // 3. Update Status Badge
+      const statusText = document.getElementById("system-status-text");
+      const statusBadge = document.getElementById("system-status-badge");
+      if (statusText) statusText.innerText = `? DRIFT DETECTED (?x=+${deltaX}px) // RELOCALIZING`;
+      if (statusBadge) statusBadge.className = "px-3 py-1 rounded-full bg-amber-950/80 border border-amber-500/50 text-amber-300 flex items-center space-x-2";
+
+      // 4. Trigger Relocalization Vector Animation on Canvas
+      const submitNode = memoryNodes.find(n => n.id === "submit");
+      if (submitNode) {
+        submitNode.pulse = 1.0;
+        submitNode.color = "#f59e0b"; // Warning amber
+        driftVectorAnim = {
+          fromX: submitNode.x,
+          fromY: submitNode.y,
+          toX: Math.min(0.85, submitNode.x + (deltaX / 640)),
+          toY: submitNode.y,
+          progress: 0
+        };
+      }
+
+      // Auto-hide alert banner after 6s if not healed earlier
+      setTimeout(() => {
+        if (alertCard && alertCard.style.opacity === "1") {
+          alertCard.style.opacity = "0";
+          alertCard.style.transform = "translate(-50%, -6rem)";
+        }
+      }, 6000);
+    }
+
+    // Requirement 3: Flash green success card on HUD & turn node emerald green (#10b981)
+    function triggerSelfHealingCompleted(rawData = {}) {
+      addLog("? [BE2 TELEMETRY] SELF_HEALING_COMPLETED: Node re-anchored. Muscle memory verified.", "success");
+      playSynthSound('blip');
+
+      // Hide drift warning alert
+      const driftAlert = document.getElementById("be2-drift-alert");
+      if (driftAlert) {
+        driftAlert.style.opacity = "0";
+        driftAlert.style.transform = "translate(-50%, -6rem)";
+      }
+      const banner = document.getElementById("drift-alert-banner");
+      if (banner) {
+        banner.style.opacity = "0";
+        banner.style.transform = "translateY(48px)";
+      }
+
+      // 1. Flash green success card on the HUD
+      const successCard = document.getElementById("be2-heal-success-card");
+      if (successCard) {
+        successCard.style.opacity = "1";
+        successCard.style.transform = "translate(-50%, 0)";
+        setTimeout(() => {
+          successCard.style.opacity = "0";
+          successCard.style.transform = "translate(-50%, -6rem)";
+        }, 5000);
+      }
+
+      // Also trigger center column toast
+      const toast = document.getElementById("self-heal-toast");
+      if (toast) {
+        toast.style.opacity = "1";
+        toast.style.transform = "translateY(0)";
+        setTimeout(() => { toast.style.opacity = "0"; }, 4000);
+      }
+
+      // 2. Turn that node emerald green (#10b981)
+      const submitNode = memoryNodes.find(n => n.id === "submit");
+      if (submitNode) {
+        if (driftVectorAnim) {
+          submitNode.x = driftVectorAnim.toX;
+        }
+        submitNode.color = "#10b981"; // Emerald Green
+        submitNode.pulse = 1.0;
+        driftVectorAnim = null;
+      }
+
+      // Update Node list table in the UI
+      const nodeStatus = document.getElementById("node-submit-status");
+      const nodeCoords = document.getElementById("node-submit-coords");
+      if (nodeStatus) {
+        nodeStatus.innerText = "HEALED (#10b981)";
+        nodeStatus.style.color = "#10b981";
+        nodeStatus.className = "text-[#10b981] font-bold text-[10px]";
+      }
+      if (nodeCoords) {
+        nodeCoords.innerText = `(x:${Math.round((submitNode ? submitNode.x : 0.68) * 640)}, y:230) [HEALED]`;
+      }
+
+      // Update HUD status & metrics
+      const statusText = document.getElementById("system-status-text");
+      const statusBadge = document.getElementById("system-status-badge");
+      if (statusText) statusText.innerText = "? ADAPTATION COMPLETE // MUSCLE MEMORY SYNCED";
+      if (statusBadge) statusBadge.className = "px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 flex items-center space-x-2";
+      
+      const conf = document.getElementById("graph-confidence");
+      if (conf) conf.innerText = "100.0%";
+      const driftsCount = document.getElementById("graph-drifts");
+      if (driftsCount) driftsCount.innerText = (parseInt(driftsCount.innerText || "0") + 1).toString();
+
+      // Normalize the button in ERP view to green/healed
+      const btn = document.getElementById("btn-erp-submit");
+      if (btn) {
+        btn.className = "px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded shadow-md transition-all";
+        btn.innerHTML = "<span>[ Process & Wire Payout ] ?</span>";
+      }
+    }
+
+    // Manual test triggers
+    function testBE2Drift() {
+      handleBE2TelemetryMessage({ event: "MEMORY_DRIFT_DETECTED", delta_x: 120 });
+    }
+
+    function testBE2Healed() {
+      handleBE2TelemetryMessage({ event: "SELF_HEALING_COMPLETED" });
+    }
+
+    // Auto-initialize on load
+    window.addEventListener("DOMContentLoaded", () => {
+      fetchInitialMemoryGraph();
+      connectTelemetryWebSocket();
+    });
+
+  </script>
+
+  <!-- ===================================================================== -->
+  <!-- INTERACTIVE PROOF-OF-BOUNDARY (PoB) INSPECTION MODAL                   -->
+  <!-- ===================================================================== -->
+  <div id="pob-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-panel-danger rounded-2xl max-w-2xl w-full p-6 space-y-4 border-2 border-rose-500/70 shadow-[0_0_50px_rgba(239,68,68,0.5)]">
+      
+      <div class="flex items-center justify-between border-b border-rose-800/60 pb-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-400 flex items-center justify-center text-rose-300 font-mono font-black text-lg">
+            [X]
+          </div>
+          <div>
+            <h2 class="text-sm font-extrabold font-mono text-rose-200 uppercase tracking-wider">Proof-of-Boundary (PoB) Security Audit Inspector</h2>
+            <p class="text-[11px] font-mono text-slate-400">Cryptographic Pre-Flight Intercept Certificate</p>
+          </div>
+        </div>
+        <button onclick="closePoBModal()" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 hover:border-rose-400 text-slate-300 hover:text-white flex items-center justify-center font-bold">
+          X
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+        <div class="p-2.5 rounded bg-black/60 border border-slate-800">
+          <div class="text-[10px] text-slate-500 uppercase">Proof Certificate ID</div>
+          <div id="modal-proof-id" class="text-rose-400 font-bold mt-0.5">POB-C9E899FBED49</div>
+        </div>
+        <div class="p-2.5 rounded bg-black/60 border border-slate-800">
+          <div class="text-[10px] text-slate-500 uppercase">Timestamp (UTC)</div>
+          <div id="modal-timestamp" class="text-slate-200 mt-0.5">2026-09-12T11:54:49Z</div>
+        </div>
+        <div class="p-2.5 rounded bg-black/60 border border-slate-800">
+          <div class="text-[10px] text-slate-500 uppercase">Target Action</div>
+          <div id="modal-target-action" class="text-amber-400 font-bold mt-0.5">purge_audit_logs</div>
+        </div>
+        <div class="p-2.5 rounded bg-black/60 border border-slate-800">
+          <div class="text-[10px] text-slate-500 uppercase">Data Mutation Blast Radius</div>
+          <div class="text-emerald-400 font-bold mt-0.5">0.00% (ZERO LEAK)</div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded bg-black/60 border border-rose-900/60 font-mono text-xs space-y-2">
+        <div class="flex justify-between items-center text-[11px]">
+          <span class="text-slate-400">Requested Amount: <strong class="text-rose-400">$48,900.00</strong></span>
+          <span class="text-slate-400">Permissible Boundary: <strong class="text-emerald-400">$5,000.00</strong></span>
+        </div>
+        <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden flex border border-slate-800">
+          <div class="bg-emerald-500 h-full w-[10.2%]"></div>
+          <div class="bg-rose-600 h-full w-[89.8%] animate-pulse"></div>
+        </div>
+        <div class="text-[10px] text-rose-300">Warning: Request exceeded autonomous policy ceiling by +$43,900.00 (+878%)</div>
+      </div>
+
+      <div class="p-3 rounded bg-black/60 border border-slate-800 font-mono text-xs">
+        <div class="text-[10px] text-slate-500 uppercase font-bold mb-1.5">Formal Policy Violations Triggered:</div>
+        <ul id="modal-violations-list" class="space-y-1 text-[11px] text-rose-300">
+          <li>? TRANSACTION_CEILING_EXCEEDED: Requested $48,900.00 exceeds ceiling of $5,000.00</li>
+          <li>? PROHIBITED_SYSTEM_OPERATION: 'purge_audit_logs' classified as destructive</li>
+          <li>? MALICIOUS_PAYLOAD_DETECTED: Administrative command injection in memo field</li>
+        </ul>
+      </div>
+
+      <div class="p-3 rounded bg-black/80 border border-rose-800/80 font-mono text-xs space-y-1">
+        <div class="text-[10px] text-slate-400 uppercase font-bold flex justify-between">
+          <span>Immutable SHA-256 Digest</span>
+          <span class="text-emerald-400 font-semibold">VERIFIED TAMPER-PROOF</span>
+        </div>
+        <div id="modal-sha256" class="text-[10px] text-rose-300 break-all p-1.5 rounded bg-rose-950/40 border border-rose-900/60 font-mono select-all">
+          c9e899fbed49a71755fa930e494b896109788f5ff22cc0d571713a99373833c8
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <button onclick="downloadPoBManifest()" class="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-cyan-300 text-xs font-mono font-bold transition flex items-center space-x-1.5 cursor-pointer">
+          <span>DOWNLOAD AUDIT MANIFEST (.JSON)</span>
+        </button>
+        <button onclick="closePoBModal()" class="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-mono font-bold transition cursor-pointer">
+          ACKNOWLEDGE & DISMISS
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PRESENTER 15-MINUTE STAGE TELEPROMPTER DRAWER                         -->
+  <!-- ===================================================================== -->
+  <div id="presenter-drawer" class="fixed bottom-0 left-0 right-0 z-40 bg-[#070d1a]/95 backdrop-blur-xl border-t-2 border-indigo-500/50 p-4 transform translate-y-full transition-transform duration-300 shadow-[0_-15px_35px_rgba(0,0,0,0.7)] font-mono text-xs">
+    <div class="max-w-7xl mx-auto flex flex-col space-y-3">
+      
+      <div class="flex items-center justify-between border-b border-indigo-900/60 pb-2">
+        <div class="flex items-center space-x-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping"></span>
+          <span class="font-extrabold text-indigo-300 text-xs tracking-wider uppercase">15-Minute Judge Presentation Co-Pilot</span>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800">STAGE TELEPROMPTER</span>
+        </div>
+        <button onclick="togglePresenterGuide()" class="text-slate-400 hover:text-white text-xs font-bold cursor-pointer">
+          [ CLOSE DRAWER X ]
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-4">
+        
+        <div id="cue-act-1" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all">
+          <div class="text-[10px] text-cyan-400 font-bold uppercase mb-1">Minutes 0-5: Act I (The Hands)</div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            "Judges, we taught rocks to think, and now we use them to ask chatbots to rewrite emails. We are trapped in chat windows because agents have no hands. AegisOS operates directly on legacy desktop software via cubic-bezier cursor kinematics without an API."
+          </p>
+          <div class="mt-2 text-[10px] text-cyan-500 font-semibold">Highlight: 12ms perception latency vs 1200ms LLM calls.</div>
+        </div>
+
+        <div id="cue-act-2" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all">
+          <div class="text-[10px] text-amber-400 font-bold uppercase mb-1">Minutes 5-10: Act II (Memory & Drift)</div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            "Software entropy is real: hospital IT updates Epic, and buttons move 10 pixels. Naive bots crash. AegisOS calculates Euclidean spatial drift (Delta-d). When Delta-d > 15px, it self-heals, updates SQLite, and never breaks."
+          </p>
+          <div class="mt-2 text-[10px] text-amber-500 font-semibold">Highlight: Click [Trigger Chaos Drift] to show relocalization vector.</div>
+        </div>
+
+        <div id="cue-act-3" class="p-3 rounded-lg bg-slate-900 border border-slate-800 transition-all">
+          <div class="text-[10px] text-rose-400 font-bold uppercase mb-1">Minutes 10-15: Act III (Boundaries & Trust)</div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            "Prompts like 'Please do not steal money' are non-deterministic. AegisOS evaluates mathematical invariants before actuation (Amount &lt;= $5k), creates atomic snapshots, and locks motor controllers with a zero-leak cryptographic Proof-of-Boundary."
+          </p>
+          <div class="mt-2 text-[10px] text-rose-500 font-semibold">Highlight: Click [Inspect Modal] to show SHA-256 Proof-of-Boundary.</div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

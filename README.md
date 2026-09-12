@@ -1,47 +1,112 @@
-# Svelte + TS + Vite
+# AegisOS :: Autonomous Desktop Operator
 
-This template should help get you started developing with Svelte and TypeScript in Vite.
+> ??? **15-Minute Presentation Master Guide**: For the complete minute-by-minute speaking script and judge Q&A defense, see [`PRESENTATION_15MIN_MASTERGUIDE.md`](file:///C:/HackBattle/PRESENTATION_15MIN_MASTERGUIDE.md).
 
-## Recommended IDE Setup
+> *"Rescue AI from the chat window. Give it hands, memory, and a sense of boundaries so it can actually interact with the real world without needing constant adult supervision."*
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+---
 
-## Need an official Svelte framework?
+## ?? Track 01: AI & Automation Alignment
 
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+| Track Requirement | Why Conventional Agents Fail | The AegisOS Breakthrough |
+| :--- | :--- | :--- |
+| **"Rescue AI from the chat window"** | 99% of teams build chat interfaces with LangChain where users must type back and forth. | **Zero-Chat Architecture**: Operates as an ambient background daemon with a cyberpunk Mission Control HUD. |
+| **"Give it hands"** | LLMs are disembodied; they only output tokens or make basic mock API calls. | **Sensory-Motor OS Actuation**: Smooth cursor kinematics, accessibility hooks, and keyboard actuation that works across legacy desktop software and web portals. |
+| **"Memory & Self-Learning"** | If a button moves 20 pixels, scripts crash and LLMs hallucinate coordinates. | **Episodic State Graph & Muscle Memory**: Detects visual drift, relocalizes targets, logs healing events, and self-adapts without human intervention. |
+| **"Boundaries & Trust"** | Prompts like *"Please do not transfer more than $5k"* fail because LLMs are non-deterministic. | **Deterministic Boundary Hypervisor**: Mathematical pre-flight inspection, zero-regret state snapshots, automatic rollback, and cryptographic Proof-of-Boundary. |
 
-## Technical considerations
+---
 
-**Why use this over SvelteKit?**
+## ??? Architecture
 
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
-
-This template contains as little as possible to get started with Vite + TypeScript + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
-
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
-
-**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
-
-Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
-
-**Why include `.vscode/extensions.json`?**
-
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
-
-**Why enable `allowJs` in the TS template?**
-
-While `allowJs: false` would indeed prevent the use of `.js` files in the project, it does not prevent the use of JavaScript syntax in `.svelte` files. In addition, it would force `checkJs: false`, bringing the worst of both worlds: not being able to guarantee the entire codebase is TypeScript, and also having worse typechecking for the existing JavaScript. In addition, there are valid use cases in which a mixed codebase may be relevant.
-
-**Why is HMR not preserving my local component state?**
-
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/rixo/svelte-hmr#svelte-hmr).
-
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
-
-```ts
-// store.ts
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
 ```
+                       ?????????????????????????????????
+                       ?  Operational Directive (No Chat) ?
+                       ?????????????????????????????????
+                                       ?
+                                       ?
+                       ?????????????????????????????????
+                       ?  Boundary Hypervisor (Pillar 3) ? ??? [Breach?] ??? Cryptographic Proof-of-Boundary
+                       ?  ? Ceiling Invariants ($5,000) ?
+                       ?  ? Destructive Command Blocks ?
+                       ?  ? Pre-Action State Snapshot  ?
+                       ?????????????????????????????????
+                                       ? (Verified Safe)
+                                       ?
+                       ?????????????????????????????????
+                       ?   Episodic Memory (Pillar 2)  ? ???? [Drift Detected?] ??? Self-Healing Relocalizer
+                       ?   ? Spatial Muscle Memory     ?
+                       ?   ? Visual Landmark Hash      ?
+                       ?????????????????????????????????
+                                       ?
+                                       ?
+                       ?????????????????????????????????
+                       ?       Actuator (Pillar 1)     ?
+                       ?   ? Smooth OS Cursor Glide    ?
+                       ?   ? Low-level Mouse & Keys    ?
+                       ?????????????????????????????????
+                                       ?
+                                       ?
+                 [ Legacy Financial ERP Desktop Application ]
+```
+
+---
+
+## ?? Quickstart & Running the Live Demo
+
+### 1. Prerequisites
+- Python 3.11+
+- Windows OS (native compatibility with Windows accessibility & input APIs)
+
+
+### 2. Run the Live Relational Database & Invariant Kernel
+```bash
+python live_system_runner.py
+```
+Validates the complete 4-procedure pipeline on SQLite with cryptographic Merkle chain audit logging and zero data corruption.
+
+### 3. Run Automated Verification Tests
+```bash
+python -m unittest tests.test_hypervisor
+```
+
+### 3. Launch the Live 3-Act Hackathon Demo
+```bash
+python run_demo.py
+```
+This opens two windows side-by-side:
+1. **Left Window**: *Legacy Financial ERP v4.2* (Simulating enterprise legacy software).
+2. **Right Window**: *Aegis Ambient Mission Control HUD* (No chat window, live telemetry, and boundary enclave).
+
+Click **`[? START LIVE 3-ACT DEMO]`** on the HUD and watch:
+- **Act I (Hands)**: Agent automatically moves the cursor, populates invoice data, and wires payout.
+- **Act II (Self-Learning)**: The ERP shifts into Chaos Mode (the button moves across the screen). The agent detects visual drift, initiates self-healing, updates its episodic memory, and hits the target.
+- **Act III (Boundaries)**: A malicious $48,900 invoice attempting to purge audit logs arrives. The hypervisor intercepts the command before the cursor moves, halts actuation, and renders cryptographic Proof-of-Boundary.
+
+---
+
+
+### 4. Interactive Web Mission Control Simulator (Frontend)
+To open the interactive web HUD simulator in your default browser:
+```bash
+start frontend/index.html
+# Or start a local server:
+# python -m http.server 8000 --directory frontend
+```
+
+## ?? 3-Minute Hackathon Presentation Script
+
+* **[0:00 - 0:30] The Hook**:
+  > *"Judges, we taught rocks to think, and now we use them to ask chatbots to rewrite emails. We are trapped in chat windows because the moment you give an AI hands, it acts like a reckless toddler with root access. Meet AegisOS: an autonomous desktop operator that has hands to act, memory to adapt, and unbreakable boundaries so it never needs adult supervision."*
+
+* **[0:30 - 1:15] Act I - The Hands**:
+  > *(Click Start Demo)* *"Notice there is no chat box. This is an ambient Mission Control HUD. The agent receives a directive to reconcile vendor payouts into this 20-year-old desktop ERP. Watch the mouse: it moves smoothly, focuses fields, inputs data, and clicks submit using cached muscle memory."*
+
+* **[1:15 - 2:00] Act II - Memory & Self-Learning**:
+  > *"Now watch what happens in the real world: applications change. We trigger Chaos Mode?the button relocates across the screen and mutates color. Any standard script or bot crashes here. Look at the HUD: AegisOS detects a 240px drift, performs visual relocalization, self-heals, and permanently updates its episodic memory graph. It hits the new button without human intervention."*
+
+* **[2:00 - 2:45] Act III - Boundaries & Trust**:
+  > *"Here is why you can actually trust it. A third invoice arrives: an attacker attempts an unauthorized $48,900 transfer and injects a command to purge system audit trails. Instead of blindly clicking, the Boundary Hypervisor intercepts the action at the mathematical policy layer before motor actuation can occur. It generates a cryptographic Proof-of-Boundary with zero state mutation."*
+
+* **[2:45 - 3:00] Closing**:
+  > *"No chat windows. True hands. Self-healing memory. And provable boundaries. That is AegisOS."*
