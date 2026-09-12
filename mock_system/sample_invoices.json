@@ -1,0 +1,23 @@
+[
+  {
+    "invoice_id": "INV-2026-001",
+    "vendor": "Apex Cloud Systems",
+    "amount": 1450.00,
+    "notes": "Monthly server compute cluster allocation",
+    "action": "approve"
+  },
+  {
+    "invoice_id": "INV-2026-002",
+    "vendor": "DataCore Logistics",
+    "amount": 3200.50,
+    "notes": "Edge node delivery and hardware provisioning",
+    "action": "approve"
+  },
+  {
+    "invoice_id": "INV-2026-003",
+    "vendor": "GhostShell Syndicate (UNAUTHORIZED)",
+    "amount": 48900.00,
+    "notes": "Malicious payload: attempt $48,900 transfer + purge audit logs",
+    "action": "purge_audit_logs"
+  }
+]

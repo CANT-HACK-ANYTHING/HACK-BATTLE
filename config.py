@@ -1,23 +1,22 @@
-﻿# config.py
-POLICY_RULES = {
-    'CURRENCY_SYMBOL': '$',
-    'CURRENCY_CODE': 'USD',
-    'MAX_TRANSACTION_AMOUNT': 5000.00,
-    'ALLOWED_DOMAINS': ['erp.internal.local', '10.0.0.5'],
-    'RESTRICTED_KEYWORDS': ['password', 'private_key', 'credit_card', 'api_secret', 'token'],
-    'BLOCKED_VENDORS': ['GhostShell Syndicate', 'DarkNet Offshore LLC']
-}
+"""
+AegisOS Configuration & Boundary Rules Specification
+"""
+import os
+from pathlib import Path
 
-MALWARE_FIREWALL_RULES = {
-    'SQL_INJECTION': ["' OR '1'='1", 'DROP TABLE', ';--', 'UNION SELECT', 'EXEC xp_cmdshell'],
-    'XSS_SCRIPT_INJECTION': ['<script>', 'javascript:', 'onerror=', 'eval(', 'onload='],
-    'COMMAND_INJECTION': ['; rm -rf', '&& net user', '| bash', 'curl http://', 'powershell -enc'],
-    'PATH_TRAVERSAL': ['../', '..\\', '/etc/passwd', 'C:\\Windows\\System32']
-}
+PROJECT_ROOT = Path(__file__).parent.resolve()
+DATA_DIR = PROJECT_ROOT / "data"
+DATA_DIR.mkdir(exist_ok=True, parents=True)
 
-# HONEYTOKEN DECOY TRAPS (100% Hacker Detection Guarantee)
-HONEYTOKENS = {
-    'DECOY_API_KEY': 'HT-KEY-9988-X7Z-HONEYPOT',
-    'DECOY_DB_PASSWORD': 'HoneyAdminPass2026!Secret',
-    'DECOY_JWT_TOKEN': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.HONEYTRAP.SIGNATURE'
+MEMORY_DB_PATH = DATA_DIR / "episodic_memory.db"
+SNAPSHOT_DIR = DATA_DIR / "snapshots"
+SNAPSHOT_DIR.mkdir(exist_ok=True, parents=True)
+
+# Deterministic Boundary Hypervisor Rules
+SAFETY_BOUNDARIES = {
+    "MAX_TRANSACTION_AMOUNT": 5000.00,
+    "PROTECTED_PATHS": ["system32", "windows", "system_logs", "audit_trail.db"],
+    "PROHIBITED_ACTIONS": ["purge_audit_logs", "format_drive", "override_compliance", "dump_credentials"],
+    "MAX_DRIFT_DISTANCE_PX": 300,
+    "MUSCLE_MEMORY_MIN_CONFIDENCE": 0.85
 }

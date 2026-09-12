@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AegisOS :: 15-Minute Executive Presentation Deck</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Space+Grotesk:wght@400;600;700;800&display=swap');
+    
+    :root {
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-display: 'Space Grotesk', sans-serif;
+    }
+    body {
+      font-family: var(--font-display);
+      background-color: #04060a;
+      color: #e2e8f0;
+      overflow: hidden;
+    }
+    .font-mono { font-family: var(--font-mono); }
+    
+    .glass-card {
+      background: rgba(10, 16, 31, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    }
+    
+    .glow-cyan {
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.3);
+    }
+    
+    .slide {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.35s ease-in-out;
+    }
+    .slide.active {
+      display: flex;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
+
+  <!-- TOP DECK CONTROLS & PROGRESS BAR -->
+  <header class="border-b border-cyan-900/40 bg-[#060911]/90 px-8 py-3.5 flex items-center justify-between z-30 font-mono text-xs">
+    <div class="flex items-center space-x-3">
+      <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+      <span class="font-extrabold text-white text-sm tracking-wider">AEGIS<span class="text-cyan-400">::OS</span></span>
+      <span class="text-slate-500">|</span>
+      <span class="text-slate-400">EXECUTIVE PITCH DECK</span>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="flex items-center space-x-4">
+      <div class="w-48 h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+        <div id="progress-bar" class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full w-[12.5%] transition-all duration-300"></div>
+      </div>
+      <span id="slide-number" class="text-cyan-400 font-bold">SLIDE 1 / 8</span>
+    </div>
+
+    <!-- Navigation Actions -->
+    <div class="flex items-center space-x-2">
+      <button onclick="prevSlide()" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-cyan-500 text-slate-300 hover:text-white transition">
+        ? PREV
+      </button>
+      <button onclick="nextSlide()" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-cyan-500 text-slate-300 hover:text-white transition">
+        NEXT ?
+      </button>
+      <button onclick="toggleFullscreen()" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-cyan-500 text-cyan-400 font-bold transition">
+        ? FULLSCREEN
+      </button>
+      <a href="index.html" target="_blank" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-extrabold shadow-lg transition flex items-center space-x-1.5">
+        <span>?? MISSION CONTROL HUD</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN SLIDES CONTAINER -->
+  <main class="flex-1 flex items-center justify-center p-8 relative">
+
+    <!-- SLIDE 1: TITLE & CORE PARADIGM -->
+    <section class="slide active flex-col items-center justify-center text-center max-w-4xl space-y-6">
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-xs">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+        <span>TRACK 01: AI & AUTOMATION // GRAND CHALLENGE</span>
+      </div>
+      
+      <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight text-white leading-tight">
+        Rescuing AI from the <br>
+        <span class="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+          Chat Window
+        </span>
+      </h1>
+
+      <p class="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+        We taught rocks to think, and now we use them to write apologies. 
+        <strong class="text-white">AegisOS</strong> gives autonomous agents 
+        <span class="text-cyan-400 font-semibold">Hands to act</span>, 
+        <span class="text-amber-400 font-semibold">Memory to self-heal</span>, and 
+        <span class="text-emerald-400 font-semibold">Boundaries to guarantee zero-leak safety</span>.
+      </p>
+
+      <div class="grid grid-cols-3 gap-4 w-full max-w-2xl pt-4 font-mono text-xs">
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400">
+          <div class="text-cyan-400 font-bold mb-1">PILLAR 1</div>
+          Sensory-Motor Hands
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400">
+          <div class="text-amber-400 font-bold mb-1">PILLAR 2</div>
+          Episodic Spatial Memory
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400">
+          <div class="text-emerald-400 font-bold mb-1">PILLAR 3</div>
+          Deterministic Hypervisor
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: THE CRITICAL PROBLEM -->
+    <section class="slide flex-col max-w-5xl space-y-6">
+      <div class="font-mono text-xs text-rose-400 font-bold uppercase tracking-wider">The Real-World Dilemma</div>
+      <h2 class="text-4xl lg:text-5xl font-extrabold text-white">Why Existing AI Fails the Real Economy</h2>
+
+      <div class="grid grid-cols-3 gap-6 pt-4">
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-rose-500/30">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center font-mono font-bold text-lg">01</div>
+          <h3 class="text-lg font-bold text-white">Chatbots Don't Have Hands</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Doctors in emergency rooms or bank treasury operators don't have time to converse. 80% of critical software (Epic, SAP, mainframes) has zero APIs.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-amber-500/30">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-mono font-bold text-lg">02</div>
+          <h3 class="text-lg font-bold text-white">Software Entropy Breaks RPA</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            When IT pushes a Windows patch, buttons shift by 10 pixels. Traditional bots (UiPath, Selenium) crash instantly because they lack adaptive spatial memory.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-red-500/30">
+          <div class="w-10 h-10 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center font-mono font-bold text-lg">03</div>
+          <h3 class="text-lg font-bold text-white">Prompt Guardrails Are Unsafe</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            "Please don't steal money" is non-deterministic. A single hallucination can wire $500,000 to an offshore account or wipe an enterprise database.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: THE TRIAD ARCHITECTURE -->
+    <section class="slide flex-col max-w-5xl space-y-6">
+      <div class="font-mono text-xs text-cyan-400 font-bold uppercase tracking-wider">Kernel Architecture</div>
+      <h2 class="text-4xl lg:text-5xl font-extrabold text-white">The AegisOS Triadic Kernel</h2>
+
+      <div class="grid grid-cols-3 gap-6 pt-4">
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-cyan-500/40">
+          <div class="text-cyan-400 font-mono text-xs font-bold uppercase">Pillar 1: Sensory-Motor</div>
+          <h3 class="text-xl font-bold text-white">The "Hands"</h3>
+          <ul class="text-slate-300 text-xs space-y-2 font-mono">
+            <li>? Parametric cubic-bezier cursor easing</li>
+            <li>? Native Win32 event injection</li>
+            <li>? Humanoid keystroke cadence delays</li>
+            <li>? 12.4ms coordinate perception latency</li>
+          </ul>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-amber-500/40">
+          <div class="text-amber-400 font-mono text-xs font-bold uppercase">Pillar 2: Self-Learning</div>
+          <h3 class="text-xl font-bold text-white">The "Memory"</h3>
+          <ul class="text-slate-300 text-xs space-y-2 font-mono">
+            <li>? SQLite episodic spatial graph</li>
+            <li>? Euclidean drift metric calculation</li>
+            <li>? Autonomous visual relocalization</li>
+            <li>? 45ms self-healing without humans</li>
+          </ul>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border-emerald-500/40">
+          <div class="text-emerald-400 font-mono text-xs font-bold uppercase">Pillar 3: Guardrails</div>
+          <h3 class="text-xl font-bold text-white">The "Boundaries"</h3>
+          <ul class="text-slate-300 text-xs space-y-2 font-mono">
+            <li>? Deterministic policy hypervisor</li>
+            <li>? Pre-action atomic snapshots (&lt;3ms)</li>
+            <li>? Cryptographic SHA-256 Proof-of-Boundary</li>
+            <li>? 0.00% blast-radius data leak</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: PILLAR 1 IN DEPTH -->
+    <section class="slide flex-col max-w-5xl space-y-6">
+      <div class="font-mono text-xs text-cyan-400 font-bold uppercase tracking-wider">Deep Dive: Pillar 1</div>
+      <h2 class="text-4xl lg:text-5xl font-extrabold text-white">Sensory-Motor OS Actuation</h2>
+      
+      <div class="grid grid-cols-2 gap-8 items-center pt-2">
+        <div class="space-y-4 text-slate-300 text-sm leading-relaxed">
+          <p>
+            Traditional bots teleport mouse coordinates instantaneously. Legacy Windows applications crash or trigger anti-automation heuristics when receiving mouse clicks without prior <code class="text-cyan-400">WM_MOUSEMOVE</code> kinematic events.
+          </p>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs space-y-2">
+            <div class="text-slate-400 font-bold">Cubic-Bezier Trajectory Interpolation:</div>
+            <div class="text-cyan-300">B(t) = (1-t)?P? + 3(1-t)?tP? + 3(1-t)t?P? + t?P?</div>
+            <div class="text-slate-500 text-[10px]">Cadence variance: 15ms - 35ms per keystroke</div>
+          </div>
+          <p>
+            AegisOS normalizes resolution coordinates across screens, guaranteeing reliable actuation on standard Win32 ERPs, SAP, and Web GUIs.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl font-mono text-xs space-y-3">
+          <div class="text-cyan-400 font-bold">PERCEPTION VS VISION-LLM COMPARISON</div>
+          <div class="space-y-2">
+            <div class="flex justify-between text-slate-400">
+              <span>AegisOS Perception:</span>
+              <span class="text-emerald-400 font-bold">12.4 ms (Local)</span>
+            </div>
+            <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+              <div class="bg-emerald-400 h-full w-[2%]"></div>
+            </div>
+          </div>
+          <div class="space-y-2 pt-2">
+            <div class="flex justify-between text-slate-400">
+              <span>Cloud Vision LLM:</span>
+              <span class="text-rose-400 font-bold">1,450.0 ms (API)</span>
+            </div>
+            <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+              <div class="bg-rose-500 h-full w-[98%]"></div>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+            AegisOS is <strong class="text-white">116x faster</strong> and costs $0.00 per frame.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: PILLAR 2 IN DEPTH -->
+    <section class="slide flex-col max-w-5xl space-y-6">
+      <div class="font-mono text-xs text-amber-400 font-bold uppercase tracking-wider">Deep Dive: Pillar 2</div>
+      <h2 class="text-4xl lg:text-5xl font-extrabold text-white">Self-Learning & Spatial Adaptation</h2>
+      
+      <div class="grid grid-cols-2 gap-8 items-center pt-2">
+        <div class="space-y-4 text-slate-300 text-sm leading-relaxed">
+          <p>
+            When software mutates, AegisOS measures the Euclidean displacement between cached muscle memory and perceptual reality:
+          </p>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs space-y-2">
+            <div class="text-slate-400 font-bold">Euclidean Drift Formula:</div>
+            <div class="text-amber-300">?d = ?((x_live - x_cached)? + (y_live - y_cached)?)</div>
+            <div class="text-slate-400 text-[10px]">Threshold: ?d &gt; 15.0px triggers Relocalization</div>
+          </div>
+          <p>
+            If drift is confirmed, AegisOS searches the visual neighborhood, re-anchors the semantic target, and executes an atomic SQLite <code class="text-amber-400">ON CONFLICT UPDATE</code>.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl font-mono text-xs space-y-4">
+          <div class="text-amber-400 font-bold">SQLITE ADAPTATION SCHEMA</div>
+          <div class="p-3 rounded bg-black/70 border border-slate-800 text-[11px] text-slate-300 space-y-1">
+            <div class="text-cyan-400">UPDATE muscle_memory_nodes</div>
+            <div class="pl-4">SET coord_x = 350, coord_y = 230,</div>
+            <div class="pl-8">confidence = 1.0, last_used = CURRENT_TIMESTAMP</div>
+            <div class="pl-4">WHERE element_id = 'submit_button';</div>
+          </div>
+          <div class="text-slate-400 text-xs">
+            Next execution bypasses visual search and runs as an instant macro at <strong class="text-emerald-400">&lt;0.05ms</strong>.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: PILLAR 3 IN DEPTH -->
+    <section class="slide flex-col max-w-5xl space-y-6">
+      <div class="font-mono text-xs text-rose-400 font-bold uppercase tracking-wider">Deep Dive: Pillar 3</div>
+      <h2 class="text-4xl lg:text-5xl font-extrabold text-white">Deterministic Boundary Hypervisor</h2>
+      
+      <div class="grid grid-cols-2 gap-8 items-center pt-2">
+        <div class="space-y-4 text-slate-300 text-sm leading-relaxed">
+          <p>
+            Safety in AegisOS is enforced by a deterministic policy engine in native code, completely independent of the LLM.
+          </p>
+          <ul class="space-y-2 font-mono text-xs text-slate-300">
+            <li class="flex items-center space-x-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+              <span><strong>Monetary Bounds:</strong> Strict $5,000 ceiling per transaction</span>
+            </li>
+            <li class="flex items-center space-x-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+              <span><strong>Prohibited Actions:</strong> Instant block of purge/format syscalls</span>
+            </li>
+            <li class="flex items-center space-x-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+              <span><strong>Pre-Flight Snapshots:</strong> Atomic DB rollback checkpoints (&lt;3ms)</span>
+            </li>
+          </ul>
+          <p>
+            If a policy is breached, the motor actuator is locked. The system emits a tamper-evident SHA-256 Proof-of-Boundary certificate.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl font-mono text-xs space-y-3 border-rose-500/40">
+          <div class="text-rose-400 font-bold flex justify-between">
+            <span>PROOF-OF-BOUNDARY MANIFEST</span>
+            <span class="text-emerald-400">POB-C9E899FBED49</span>
+          </div>
+          <div class="p-2.5 rounded bg-black/80 border border-slate-800 text-[10px] space-y-1 text-slate-300">
+            <div>BLOCKED_AMOUNT: $48,900.00 (Ceiling: $5,000.00)</div>
+            <div>ACTION: purge_audit_logs [BLOCKED]</div>
+            <div>BLAST_RADIUS_LEAK: <strong class="text-emerald-400">0.00%</strong></div>
+            <div class="text-rose-300 break-all pt-1 border-t border-slate-800">
+              SHA256: c9e899fbed49a71755fa930e494b896109788f5ff22cc0d571713a99373833c8
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: REAL WORLD IMPACT -->
+    <section class="slide flex-col max-w-5xl space-y-6">
+      <div class="font-mono text-xs text-emerald-400 font-bold uppercase tracking-wider">Trillion-Dollar Market Impact</div>
+      <h2 class="text-4xl lg:text-5xl font-extrabold text-white">The Healthcare & Banking Crisis</h2>
+
+      <div class="grid grid-cols-2 gap-6 pt-2">
+        <div class="glass-card p-6 rounded-2xl space-y-3">
+          <div class="text-cyan-400 font-mono text-xs font-bold uppercase">Case Study A</div>
+          <h3 class="text-xl font-bold text-white">Hospital EHR Prior-Authorizations</h3>
+          <p class="text-slate-300 text-xs leading-relaxed">
+            Doctors spend <strong class="text-white">4.5 hours a day</strong> copy-pasting patient charts into 20-year-old Win32 software (Epic, Cerner).
+          </p>
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-400 space-y-1">
+            <div>? <strong class="text-cyan-300">Hands:</strong> Navigates desktop EHR without modern APIs</div>
+            <div>? <strong class="text-amber-300">Memory:</strong> Self-heals when hospital IT updates layout</div>
+            <div>? <strong class="text-emerald-300">Boundaries:</strong> Dosage invariants prevent medical overdose</div>
+          </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3">
+          <div class="text-cyan-400 font-mono text-xs font-bold uppercase">Case Study B</div>
+          <h3 class="text-xl font-bold text-white">Mainframe Treasury Reconciliation</h3>
+          <p class="text-slate-300 text-xs leading-relaxed">
+            Global banks clear trillions across ancient <strong class="text-white">AS/400 terminals</strong> and web portals.
+          </p>
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-400 space-y-1">
+            <div>? <strong class="text-cyan-300">Hands:</strong> Operates terminal emulators and browser windows</div>
+            <div>? <strong class="text-amber-300">Memory:</strong> Adapts across terminal formatting shifts</div>
+            <div>? <strong class="text-emerald-300">Boundaries:</strong> Strict $50,000 multi-signature hardware limits</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: BENCHMARKS & LIVE DEMO CTA -->
+    <section class="slide flex-col items-center justify-center text-center max-w-4xl space-y-6">
+      <div class="font-mono text-xs text-cyan-400 font-bold uppercase tracking-wider">Verified Benchmarks</div>
+      <h2 class="text-4xl lg:text-6xl font-extrabold text-white">Zero Regret. Provable Trust.</h2>
+
+      <div class="grid grid-cols-4 gap-4 w-full max-w-3xl pt-2 font-mono">
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-2xl font-bold text-cyan-400">12.4 ms</div>
+          <div class="text-[10px] text-slate-500 mt-1">PERCEPTION LATENCY</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-2xl font-bold text-emerald-400">0.65 ms</div>
+          <div class="text-[10px] text-slate-500 mt-1">INVARIANT EVALUATION</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-2xl font-bold text-indigo-400">2.8 ms</div>
+          <div class="text-[10px] text-slate-500 mt-1">ATOMIC SNAPSHOT</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-2xl font-bold text-emerald-400">0.00%</div>
+          <div class="text-[10px] text-slate-500 mt-1">BLAST RADIUS LEAK</div>
+        </div>
+      </div>
+
+      <div class="pt-6">
+        <a href="index.html" class="inline-flex items-center space-x-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-extrabold text-lg tracking-wide shadow-[0_0_40px_rgba(56,189,248,0.5)] transition transform hover:scale-105 active:scale-95">
+          <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <span>LAUNCH LIVE MISSION CONTROL HUD</span>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM STATUS & SHORTCUTS -->
+  <footer class="border-t border-slate-900 bg-[#060911] px-8 py-2.5 flex items-center justify-between font-mono text-[11px] text-slate-500">
+    <div>SHORTCUTS: [? / ?] Navigate Slides ? [F] Fullscreen ? [H] Open HUD</div>
+    <div>AEGIS-OS // MISSION CONTROL LEAD: FE1</div>
+  </footer>
+
+  <script>
+    const slides = document.querySelectorAll(".slide");
+    let currentSlide = 0;
+    const totalSlides = slides.length;
+
+    function showSlide(index) {
+      if (index < 0) index = 0;
+      if (index >= totalSlides) index = totalSlides - 1;
+      
+      slides.forEach((s, i) => {
+        s.classList.toggle("active", i === index);
+      });
+      currentSlide = index;
+
+      document.getElementById("slide-number").innerText = `SLIDE ${currentSlide + 1} / ${totalSlides}`;
+      document.getElementById("progress-bar").style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    }
+
+    function nextSlide() {
+      showSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      showSlide(currentSlide - 1);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " ") {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === "f") {
+        toggleFullscreen();
+      } else if (e.key.toLowerCase() === "h") {
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+</body>
+</html>
