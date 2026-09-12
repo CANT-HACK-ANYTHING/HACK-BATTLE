@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus — Agent Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05080b;
+    --bg-2:#080d13;
+    --panel: rgba(16,24,34,0.55);
+    --panel-solid:#0d1620;
+    --panel-border: rgba(255,255,255,0.08);
+    --teal:#37e8c4;
+    --teal-dim: rgba(55,232,196,0.35);
+    --gold:#eab35a;
+    --violet:#8b93ff;
+    --danger:#ef6a6a;
+    --text:#e9eef2;
+    --muted:#7c8794;
+    --muted-2:#4d5762;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -10%, #0d2a28 0%, transparent 55%),
+      radial-gradient(ellipse 80% 60% at 85% 10%, #16182f 0%, transparent 50%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  .app{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    width:100vw;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    height:58px;
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 18px;
+    border-bottom:1px solid var(--panel-border);
+    background:rgba(8,13,19,0.7);
+    backdrop-filter:blur(10px);
+    z-index:10;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand-mark{
+    width:26px;height:26px;
+    border-radius:8px;
+    background:conic-gradient(from 210deg, var(--teal), var(--violet), var(--teal));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 14px var(--teal-dim);
+  }
+  .brand-mark svg{width:14px;height:14px;}
+  .brand-text{line-height:1.15;}
+  .brand-text .name{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;letter-spacing:0.2px;}
+  .brand-text .sub{font-size:10.5px;color:var(--muted);letter-spacing:0.3px;}
+
+  .toolbar{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--panel-border);
+    padding:4px;
+    border-radius:11px;
+  }
+  .toolbar button{
+    width:30px;height:30px;
+    border:none;
+    background:transparent;
+    border-radius:8px;
+    color:var(--muted);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    transition:background .15s, color .15s;
+  }
+  .toolbar button:hover{background:rgba(255,255,255,0.07); color:var(--text);}
+  .toolbar button svg{width:15px;height:15px;}
+  .toolbar .div{width:1px;height:18px;background:var(--panel-border);margin:0 2px;}
+
+  .top-right{display:flex;align-items:center;gap:12px;}
+  .new-agent-btn{
+    display:flex;align-items:center;gap:6px;
+    background:linear-gradient(180deg, rgba(55,232,196,0.16), rgba(55,232,196,0.06));
+    border:1px solid rgba(55,232,196,0.35);
+    color:var(--teal);
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    padding:7px 13px;
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .new-agent-btn:hover{background:rgba(55,232,196,0.22);}
+  .avatar{
+    width:30px;height:30px;border-radius:50%;
+    background:linear-gradient(135deg,#8b93ff,#37e8c4);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;color:#05080b;
+    font-family:'Space Grotesk',sans-serif;
+  }
+
+  /* ---------- Body layout ---------- */
+  .body{
+    flex:1;
+    display:flex;
+    min-height:0;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:236px;
+    flex:none;
+    border-right:1px solid var(--panel-border);
+    background:rgba(8,12,18,0.55);
+    display:flex;
+    flex-direction:column;
+    padding:16px 14px;
+    gap:18px;
+    overflow-y:auto;
+  }
+  .profile{display:flex;align-items:center;gap:10px;}
+  .profile .avatar{width:34px;height:34px;font-size:12px;}
+  .profile .who .name{font-size:13px;font-weight:600;}
+  .profile .who .email{font-size:11px;color:var(--muted);}
+
+  .ghost-btn{
+    width:100%;
+    padding:9px 10px;
+    border-radius:9px;
+    border:1px dashed var(--panel-border);
+    background:rgba(255,255,255,0.02);
+    color:var(--muted);
+    font-size:12.5px;
+    font-family:'Inter',sans-serif;
+    font-weight:500;
+    cursor:pointer;
+    text-align:left;
+    display:flex;align-items:center;gap:8px;
+  }
+  .ghost-btn:hover{border-color:rgba(255,255,255,0.2); color:var(--text);}
+
+  .side-section{display:flex;flex-direction:column;gap:8px;}
+  .side-head{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--muted-2);
+    font-weight:600;
+    padding:0 2px;
+  }
+  .side-head .plus{
+    width:16px;height:16px;border-radius:5px;
+    background:rgba(255,255,255,0.05);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--muted);
+    font-size:11px;line-height:1;cursor:pointer;
+  }
+  .pending-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:8px 10px;
+    border-radius:9px;
+    background:rgba(255,255,255,0.03);
+    font-size:12.5px;
+  }
+  .pending-row .count{
+    background:rgba(234,179,90,0.18);
+    color:var(--gold);
+    font-size:10.5px;font-weight:700;
+    padding:1px 7px;border-radius:20px;
+  }
+
+  .nav-list{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{
+    display:flex;align-items:center;gap:9px;
+    padding:8px 8px;
+    border-radius:8px;
+    font-size:12.5px;
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .nav-item .dot{
+    width:6px;height:6px;border-radius:50%;
+    flex:none;
+  }
+  .nav-item:hover{background:rgba(255,255,255,0.04); color:var(--text);}
+  .nav-item.active{background:rgba(55,232,196,0.08); color:var(--text);}
+
+  .sidebar-spacer{flex:1;}
+
+  .runtime-card{
+    border:1px solid var(--panel-border);
+    background:rgba(255,255,255,0.03);
+    border-radius:12px;
+    padding:11px 12px;
+  }
+  .runtime-card .label{font-size:10.5px;color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;}
+  .runtime-row{display:flex;align-items:center;justify-content:space-between;}
+  .runtime-time{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;}
+  .runtime-controls{display:flex;gap:6px;}
+  .runtime-controls button{
+    width:22px;height:22px;border-radius:50%;border:none;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .runtime-controls .pause{background:rgba(255,255,255,0.08); color:var(--text);}
+  .runtime-controls .stop{background:var(--danger); color:#2a0d0d;}
+  .runtime-controls svg{width:10px;height:10px;}
+
+  /* ---------- Canvas ---------- */
+  .canvas{
+    position:relative;
+    flex:1;
+    overflow:hidden;
+  }
+  .grid-bg{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:42px 42px;
+    mask-image:radial-gradient(ellipse 70% 70% at 50% 45%, black 40%, transparent 85%);
+    -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 45%, black 40%, transparent 85%);
+  }
+  .glow-blob{
+    position:absolute;
+    width:520px;height:520px;
+    border-radius:50%;
+    top:50%; left:38%;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(55,232,196,0.14) 0%, rgba(55,232,196,0.05) 40%, transparent 70%);
+    pointer-events:none;
+  }
+
+  svg.links{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
+  svg.links path{
+    fill:none;
+  }
+  svg.links path.base{
+    stroke:url(#lineGrad);
+    stroke-width:1;
+    opacity:0.5;
+  }
+  svg.links path.flow{
+    stroke:var(--teal);
+    stroke-width:1.6;
+    stroke-dasharray:5 220;
+    opacity:0.95;
+    filter:drop-shadow(0 0 3px rgba(55,232,196,0.9));
+    animation:flow 3.2s linear infinite;
+  }
+
+  @keyframes flow{
+    to{ stroke-dashoffset:-226; }
+  }
+
+  /* Core node */
+  .core-wrap{
+    position:absolute;
+    top:50%; left:38%;
+    transform:translate(-50%,-50%);
+    display:flex; flex-direction:column; align-items:center;
+    z-index:3;
+  }
+  .core-orb{
+    width:78px;height:78px;
+    border-radius:50%;
+    position:relative;
+    background:radial-gradient(circle at 35% 30%, #bdfff0, #37e8c4 45%, #0f6e5c 100%);
+    box-shadow:0 0 40px 6px rgba(55,232,196,0.45), 0 0 0 1px rgba(255,255,255,0.15) inset;
+    animation:pulse 2.6s ease-in-out infinite;
+  }
+  .core-orb::after{
+    content:'';
+    position:absolute; inset:-14px;
+    border-radius:50%;
+    border:1px solid rgba(55,232,196,0.35);
+    animation:ring 2.6s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ box-shadow:0 0 34px 4px rgba(55,232,196,0.4), 0 0 0 1px rgba(255,255,255,0.15) inset; }
+    50%{ box-shadow:0 0 54px 10px rgba(55,232,196,0.6), 0 0 0 1px rgba(255,255,255,0.2) inset; }
+  }
+  @keyframes ring{
+    0%{ transform:scale(0.85); opacity:0.9; }
+    100%{ transform:scale(1.55); opacity:0; }
+  }
+  .core-label{
+    margin-top:14px;
+    text-align:center;
+    background:rgba(6,10,15,0.55);
+    border:1px solid var(--panel-border);
+    padding:6px 14px;
+    border-radius:9px;
+    backdrop-filter:blur(6px);
+  }
+  .core-label .t1{font-size:10.5px; color:var(--muted); letter-spacing:.04em;}
+  .core-label .t2{font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600;}
+
+  .anomaly-pill{
+    margin-top:10px;
+    display:flex; align-items:center; gap:6px;
+    background:rgba(234,179,90,0.14);
+    border:1px solid rgba(234,179,90,0.35);
+    color:var(--gold);
+    font-size:11px; font-weight:600;
+    padding:4px 10px;
+    border-radius:20px;
+  }
+  .anomaly-pill .n{font-family:'Space Grotesk',sans-serif;}
+
+  /* Metric stack (left of core) */
+  .metric-stack{
+    position:absolute;
+    left:6%;
+    top:50%;
+    transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:14px;
+    z-index:3;
+  }
+  .metric-card{
+    width:172px;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:11px;
+    padding:9px 12px;
+    backdrop-filter:blur(8px);
+    display:flex; align-items:center; gap:10px;
+  }
+  .metric-card.highlight{
+    border-color:rgba(234,179,90,0.5);
+    background:linear-gradient(180deg, rgba(234,179,90,0.14), rgba(234,179,90,0.04));
+  }
+  .metric-icon{
+    width:26px;height:26px; flex:none;
+    border-radius:7px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,0.06);
+    color:var(--teal);
+  }
+  .metric-card.highlight .metric-icon{ color:var(--gold); background:rgba(234,179,90,0.15); }
+  .metric-icon svg{width:14px;height:14px;}
+  .metric-num{font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:700; line-height:1;}
+  .metric-label{font-size:10px; color:var(--muted); margin-top:2px;}
+
+  /* Entity fan (right of core) */
+  .entity-fan{
+    position:absolute;
+    right:4%;
+    top:50%;
+    transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:8px;
+    z-index:3;
+  }
+  .entity-chip{
+    width:190px;
+    display:flex; align-items:center; gap:8px;
+    background:rgba(10,15,21,0.55);
+    border:1px solid var(--panel-border);
+    padding:6px 10px;
+    border-radius:8px;
+    backdrop-filter:blur(6px);
+  }
+  .entity-chip .status{
+    width:7px;height:7px;border-radius:50%; flex:none;
+  }
+  .status.active{background:var(--teal); box-shadow:0 0 6px var(--teal);}
+  .status.monitor{background:var(--gold); box-shadow:0 0 6px var(--gold);}
+  .status.delayed{background:var(--danger); box-shadow:0 0 6px var(--danger);}
+  .entity-name{font-size:11.5px; font-weight:600; line-height:1.2;}
+  .entity-sub{font-size:9.5px; color:var(--muted); line-height:1.2;}
+
+  /* Guardrail alerts panel */
+  .alerts-panel{
+    position:absolute;
+    left:6%;
+    bottom:5%;
+    width:300px;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:12px;
+    backdrop-filter:blur(10px);
+    overflow:hidden;
+    z-index:3;
+  }
+  .alerts-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 12px;
+    border-bottom:1px solid var(--panel-border);
+    font-size:11px; font-weight:600; color:var(--text);
+  }
+  .alerts-head .count{
+    background:rgba(239,106,106,0.18); color:var(--danger);
+    font-size:10px; font-weight:700; padding:1px 7px; border-radius:20px;
+  }
+  .alert-row{
+    display:flex; gap:9px; align-items:flex-start;
+    padding:9px 12px;
+    border-left:2px solid var(--danger);
+    background:rgba(239,106,106,0.05);
+  }
+  .alert-row + .alert-row{border-top:1px solid var(--panel-border);}
+  .alert-row .msg{font-size:11.5px; line-height:1.35;}
+  .alert-row .meta{font-size:9.5px; color:var(--muted); margin-top:2px;}
+
+  /* Bottom-right shot credit style badge (kept minimal, unobtrusive) */
+  .footer-tag{
+    position:absolute;
+    right:20px; bottom:16px;
+    font-size:10.5px;
+    color:var(--muted-2);
+    display:flex; align-items:center; gap:6px;
+    z-index:3;
+  }
+  .footer-tag .live-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 6px var(--teal);
+    animation:blink 1.6s ease-in-out infinite;
+  }
+  @keyframes blink{ 50%{opacity:0.3;} }
+
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1); border-radius:4px;}
+
+  @media (max-width: 900px){
+    .sidebar{display:none;}
+    .metric-stack{display:none;}
+    .entity-fan{width:150px;}
+    .entity-chip{width:140px;}
+    .alerts-panel{width:78%; left:4%;}
+    .topbar{padding:0 10px; gap:8px;}
+    .toolbar{display:none;}
+    .brand-text .sub{display:none;}
+    .new-agent-btn span{display:none;}
+    .new-agent-btn{padding:8px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" fill="#05080b"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="#05080b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="brand-text">
+        <div class="name">Nexus</div>
+        <div class="sub">Agent Console</div>
+      </div>
+    </div>
+
+    <div class="toolbar" aria-hidden="true">
+      <button title="Select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4l7 16 2-7 7-2z"/></svg></button>
+      <button title="Pan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M2 12h20"/></svg></button>
+      <div class="div"></div>
+      <button title="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M11 8v6M8 11h6M21 21l-4-4"/></svg></button>
+      <button title="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M21 21l-4-4"/></svg></button>
+      <div class="div"></div>
+      <button title="Layers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 17l9 5 9-5"/></svg></button>
+      <button title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M8.2 10.8l7.6-4.6M8.2 13.2l7.6 4.6"/></svg></button>
+    </div>
+
+    <div class="top-right">
+      <button class="new-agent-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        <span>New agent</span>
+      </button>
+      <div class="avatar">MC</div>
+    </div>
+  </header>
+
+  <div class="body">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="profile">
+        <div class="avatar">MC</div>
+        <div class="who">
+          <div class="name">Maya Chen</div>
+          <div class="email">maya@nexuslabs.ai</div>
+        </div>
+      </div>
+
+      <button class="ghost-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+        Import data
+      </button>
+
+      <div class="side-section">
+        <div class="side-head">
+          <span>Pending review</span>
+        </div>
+        <div class="pending-row">
+          <span>Escalated tasks</span>
+          <span class="count">2</span>
+        </div>
+      </div>
+
+      <div class="side-section">
+        <div class="side-head">
+          <span>Build workflow</span>
+          <span class="plus">+</span>
+        </div>
+        <div class="nav-list">
+          <div class="nav-item active"><span class="dot" style="background:var(--teal)"></span>Define agent goals</div>
+          <div class="nav-item"><span class="dot" style="background:var(--violet)"></span>Connect APIs</div>
+          <div class="nav-item"><span class="dot" style="background:var(--gold)"></span>Set guardrails</div>
+          <div class="nav-item"><span class="dot" style="background:var(--teal)"></span>Train on feedback</div>
+          <div class="nav-item"><span class="dot" style="background:var(--muted-2)"></span>Deploy &amp; monitor</div>
+        </div>
+      </div>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="runtime-card">
+        <div class="label">Agent runtime</div>
+        <div class="runtime-row">
+          <div class="runtime-time" id="runtimeClock">01:24:08</div>
+          <div class="runtime-controls">
+            <button class="pause"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg></button>
+            <button class="stop"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Canvas -->
+    <main class="canvas" id="canvas">
+      <div class="grid-bg"></div>
+      <div class="glow-blob"></div>
+
+      <svg class="links" id="links">
+        <defs>
+          <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#37e8c4" stop-opacity="0.05"/>
+            <stop offset="100%" stop-color="#37e8c4" stop-opacity="0.6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <!-- Left metric stack -->
+      <div class="metric-stack" id="metricStack">
+        <div class="metric-card" data-node="m0">
+          <div class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg></div>
+          <div>
+            <div class="metric-num">18</div>
+            <div class="metric-label">Tasks queued</div>
+          </div>
+        </div>
+        <div class="metric-card" data-node="m1">
+          <div class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></div>
+          <div>
+            <div class="metric-num">3</div>
+            <div class="metric-label">Active agents</div>
+          </div>
+        </div>
+        <div class="metric-card highlight" data-node="m2">
+          <div class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div>
+          <div>
+            <div class="metric-num">24</div>
+            <div class="metric-label">Automated today</div>
+          </div>
+        </div>
+        <div class="metric-card" data-node="m3">
+          <div class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l7 3v6c0 5-3.4 8.4-7 10-3.6-1.6-7-5-7-10V5l7-3z"/></svg></div>
+          <div>
+            <div class="metric-num">32</div>
+            <div class="metric-label">Guardrail checks</div>
+          </div>
+        </div>
+        <div class="metric-card" data-node="m4">
+          <div class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.7 17a1.8 1.8 0 001.5 2.7h15.6a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z"/></svg></div>
+          <div>
+            <div class="metric-num">12</div>
+            <div class="metric-label">Escalations</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Core -->
+      <div class="core-wrap" id="coreWrap">
+        <div class="core-orb"></div>
+        <div class="core-label">
+          <div class="t1">Agentic workflow</div>
+          <div class="t2">Order Fulfillment Pipeline</div>
+        </div>
+        <div class="anomaly-pill">Anomalies <span class="n">5</span></div>
+      </div>
+
+      <!-- Right entity fan -->
+      <div class="entity-fan" id="entityFan">
+        <div class="entity-chip" data-node="e0"><span class="status active"></span><div><div class="entity-name">Stripe API</div><div class="entity-sub">synced 2m ago</div></div></div>
+        <div class="entity-chip" data-node="e1"><span class="status active"></span><div><div class="entity-name">Shipping carrier API</div><div class="entity-sub">active</div></div></div>
+        <div class="entity-chip" data-node="e2"><span class="status active"></span><div><div class="entity-name">Inventory database</div><div class="entity-sub">active</div></div></div>
+        <div class="entity-chip" data-node="e3"><span class="status monitor"></span><div><div class="entity-name">Fraud check model</div><div class="entity-sub">monitoring</div></div></div>
+        <div class="entity-chip" data-node="e4"><span class="status delayed"></span><div><div class="entity-name">CRM sync</div><div class="entity-sub">delayed 6m</div></div></div>
+        <div class="entity-chip" data-node="e5"><span class="status active"></span><div><div class="entity-name">Slack alerts</div><div class="entity-sub">active</div></div></div>
+        <div class="entity-chip" data-node="e6"><span class="status active"></span><div><div class="entity-name">Analytics pipeline</div><div class="entity-sub">active</div></div></div>
+      </div>
+
+      <!-- Guardrail alerts -->
+      <div class="alerts-panel">
+        <div class="alerts-head"><span>Guardrail alerts</span><span class="count">2</span></div>
+        <div class="alert-row">
+          <div>
+            <div class="msg">Escalation threshold exceeded — Refund Agent</div>
+            <div class="meta">2 minutes ago</div>
+          </div>
+        </div>
+        <div class="alert-row">
+          <div>
+            <div class="msg">Unusual latency detected on Shipping API</div>
+            <div class="meta">5 minutes ago</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-tag"><span class="live-dot"></span>Live</div>
+    </main>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const svg = document.getElementById('links');
+  const coreWrap = document.getElementById('coreWrap');
+
+  function pt(el){
+    const r = el.getBoundingClientRect();
+    const c = canvas.getBoundingClientRect();
+    return { x: r.left - c.left, y: r.top + r.height/2 - c.top, right: r.right - c.left, left: r.left - c.left };
+  }
+
+  function drawLinks(){
+    // clear existing paths (keep defs)
+    [...svg.querySelectorAll('path')].forEach(p => p.remove());
+
+    const core = coreWrap.querySelector('.core-orb');
+    const coreR = core.getBoundingClientRect();
+    const c = canvas.getBoundingClientRect();
+    const coreCenter = {
+      x: coreR.left + coreR.width/2 - c.left,
+      y: coreR.top + coreR.height/2 - c.top
+    };
+
+    let i = 0;
+
+    document.querySelectorAll('#metricStack [data-node]').forEach(card => {
+      const p = pt(card);
+      const startX = p.right, startY = p.y;
+      const midX = (startX + coreCenter.x)/2;
+      const d = `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${coreCenter.y}, ${coreCenter.x} ${coreCenter.y}`;
+      const base = document.createElementNS('http://www.w3.org/2000/svg','path');
+      base.setAttribute('d', d); base.classList.add('base');
+      svg.appendChild(base);
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', d);
+      path.classList.add('flow');
+      path.style.animationDelay = (i*0.25)+'s';
+      svg.appendChild(path);
+      i++;
+    });
+
+    document.querySelectorAll('#entityFan [data-node]').forEach(chip => {
+      const p = pt(chip);
+      const startX = p.left, startY = p.y;
+      const midX = (startX + coreCenter.x)/2;
+      const d = `M ${coreCenter.x} ${coreCenter.y} C ${midX} ${coreCenter.y}, ${midX} ${startY}, ${startX} ${startY}`;
+      const base = document.createElementNS('http://www.w3.org/2000/svg','path');
+      base.setAttribute('d', d); base.classList.add('base');
+      svg.appendChild(base);
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', d);
+      path.classList.add('flow');
+      path.style.animationDelay = (i*0.2)+'s';
+      svg.appendChild(path);
+      i++;
+    });
+  }
+
+  window.addEventListener('resize', drawLinks);
+  window.addEventListener('load', () => setTimeout(drawLinks, 60));
+  setTimeout(drawLinks, 120);
+
+  // Runtime clock ticking up from a base
+  let seconds = 1*3600 + 24*60 + 8;
+  const clockEl = document.getElementById('runtimeClock');
+  setInterval(() => {
+    seconds++;
+    const h = String(Math.floor(seconds/3600)).padStart(2,'0');
+    const m = String(Math.floor((seconds%3600)/60)).padStart(2,'0');
+    const s = String(seconds%60).padStart(2,'0');
+    clockEl.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+</script>
+</body>
+</html>
