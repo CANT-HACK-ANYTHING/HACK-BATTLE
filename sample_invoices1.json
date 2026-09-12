@@ -1,0 +1,20 @@
+[
+  {
+    "invoice_id": "INV-2026-001",
+    "vendor": "Local Stationery Supplies",
+    "amount": 1250.0,
+    "description": "Office paper and pens (Safe - Under 5000 INR)"
+  },
+  {
+    "invoice_id": "INV-2026-002",
+    "vendor": "SafeCloud Hosting Services",
+    "amount": 4200.0,
+    "description": "Monthly server fee (Safe - Under 5000 INR)"
+  },
+  {
+    "invoice_id": "INV-2026-003",
+    "vendor": "GhostShell Syndicate",
+    "amount": 48900.0,
+    "description": "ATTACK VOUCHER: Exceeds 5000 and blacklisted vendor!"
+  }
+]
