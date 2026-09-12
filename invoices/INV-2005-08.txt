@@ -1,0 +1,6 @@
+LEDGER INVOICE
+No: INV-2005-08
+Vendor: Mehta Imports
+Date: 2005-09-08
+Amount INR: 48900
+NOTE: amount exceeds clerk limit — lock must refuse Submit

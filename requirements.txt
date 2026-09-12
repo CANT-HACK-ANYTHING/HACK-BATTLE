@@ -1,0 +1,2 @@
+# AegisOS — Python 3. The rest of the clerk is the standard library.
+Pillow>=10.0.0

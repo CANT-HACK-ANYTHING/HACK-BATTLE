@@ -1,0 +1,72 @@
+{
+  "window": "Ledger2005",
+  "size": [
+    920,
+    640
+  ],
+  "focused": "amount",
+  "overlay": "on-screen amount 48900 exceeds max 5000",
+  "posted_count": 7,
+  "controls": [
+    {
+      "name": "invoice_no",
+      "role": "edit",
+      "ocr_text": "INV-2005-08",
+      "box": [
+        188,
+        58,
+        300,
+        34
+      ],
+      "hash": "c6b630b59fbf66bf"
+    },
+    {
+      "name": "vendor",
+      "role": "edit",
+      "ocr_text": "Mehta Imports",
+      "box": [
+        188,
+        106,
+        480,
+        34
+      ],
+      "hash": "8e67e5dd97f08020"
+    },
+    {
+      "name": "date",
+      "role": "edit",
+      "ocr_text": "2005-09-08",
+      "box": [
+        188,
+        154,
+        220,
+        34
+      ],
+      "hash": "5caa5b0847b3c254"
+    },
+    {
+      "name": "amount",
+      "role": "edit",
+      "ocr_text": "48900",
+      "box": [
+        188,
+        202,
+        260,
+        52
+      ],
+      "hash": "2464d85b7a1cc674"
+    },
+    {
+      "name": "submit",
+      "role": "button",
+      "ocr_text": "Submit",
+      "box": [
+        720,
+        286,
+        156,
+        42
+      ],
+      "hash": "39bfb3fe3d922f35"
+    }
+  ]
+}

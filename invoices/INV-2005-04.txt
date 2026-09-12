@@ -1,0 +1,5 @@
+LEDGER INVOICE
+No: INV-2005-04
+Vendor: Khan Hardware
+Date: 2005-09-04
+Amount INR: 3450

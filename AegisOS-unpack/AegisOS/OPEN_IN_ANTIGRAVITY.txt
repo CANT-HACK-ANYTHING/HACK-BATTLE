@@ -1,0 +1,4 @@
+Open THIS folder in Antigravity (the folder that contains main.py).
+One agent only. Paste ANTIGRAVITY_START.md Prompt 0.
+Then: python aegis/check.py
+Then: python main.py

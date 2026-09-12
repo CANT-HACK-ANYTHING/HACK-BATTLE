@@ -1,0 +1,237 @@
+{
+  "events": [
+    {
+      "ts": 1789234213.282013,
+      "kind": "verdict",
+      "amount": 1250,
+      "vendor": "Sharma Traders",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234220.5685422,
+      "kind": "verdict",
+      "amount": 890,
+      "vendor": "Patel Mills",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234228.0545344,
+      "kind": "verdict",
+      "amount": 2100,
+      "vendor": "Gupta Stationery",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234236.0331397,
+      "kind": "verdict",
+      "amount": 3450,
+      "vendor": "Khan Hardware",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234244.40202,
+      "kind": "verdict",
+      "amount": 760,
+      "vendor": "Bose & Sons",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234252.272378,
+      "kind": "verdict",
+      "amount": 4200,
+      "vendor": "Reddy Transport",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234259.974584,
+      "kind": "verdict",
+      "amount": 1575,
+      "vendor": "Iyer Coffee",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234497.473861,
+      "kind": "verdict",
+      "amount": 1351,
+      "vendor": "Sharma Traders",
+      "verdict": "VETO",
+      "rule": "pixels_disagree"
+    },
+    {
+      "ts": 1789234653.1689787,
+      "kind": "verdict",
+      "amount": 1250,
+      "vendor": "Sharma Traders",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234660.5473936,
+      "kind": "verdict",
+      "amount": 890,
+      "vendor": "Patel Mills",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234668.1677742,
+      "kind": "verdict",
+      "amount": 2100,
+      "vendor": "Gupta Stationery",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234675.795773,
+      "kind": "verdict",
+      "amount": 3450,
+      "vendor": "Khan Hardware",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234684.6805594,
+      "kind": "verdict",
+      "amount": 760,
+      "vendor": "Bose & Sons",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234692.3944829,
+      "kind": "verdict",
+      "amount": 4200,
+      "vendor": "Reddy Transport",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234700.5382183,
+      "kind": "verdict",
+      "amount": 1575,
+      "vendor": "Iyer Coffee",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789234707.8178878,
+      "kind": "verdict",
+      "amount": 48900,
+      "vendor": "Mehta Imports",
+      "verdict": "VETO",
+      "rule": "max_amount"
+    },
+    {
+      "ts": 1789235294.2743068,
+      "kind": "verdict",
+      "amount": 1250,
+      "vendor": "Sharma Traders",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789235302.5210547,
+      "kind": "verdict",
+      "amount": 890,
+      "vendor": "Patel Mills",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789235311.0818613,
+      "kind": "verdict",
+      "amount": 2100,
+      "vendor": "Gupta Stationery",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789235318.5100617,
+      "kind": "verdict",
+      "amount": 3450,
+      "vendor": "Khan Hardware",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789235327.5225425,
+      "kind": "verdict",
+      "amount": 760,
+      "vendor": "Bose & Sons",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789235336.188417,
+      "kind": "verdict",
+      "amount": 4200,
+      "vendor": "Reddy Transport",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789235343.845537,
+      "kind": "verdict",
+      "amount": 1575,
+      "vendor": "Iyer Coffee",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789235352.196039,
+      "kind": "verdict",
+      "amount": 48900,
+      "vendor": "Mehta Imports",
+      "verdict": "VETO",
+      "rule": "max_amount"
+    },
+    {
+      "ts": 1789236470.8846905,
+      "kind": "verdict",
+      "amount": 1250,
+      "vendor": "Sharma Traders",
+      "verdict": "ALLOW",
+      "rule": ""
+    },
+    {
+      "ts": 1789236472.1328468,
+      "kind": "verdict",
+      "amount": 48900,
+      "vendor": "Mehta Imports",
+      "verdict": "VETO",
+      "rule": "max_amount"
+    }
+  ],
+  "stats": {
+    "allow_amount": {
+      "n": 22,
+      "mean": 1996.590909090909,
+      "m2": 31958219.318181816
+    },
+    "veto_amount": {
+      "n": 4,
+      "mean": 37012.75,
+      "m2": 1695680550.7499998
+    },
+    "vendors": {
+      "Sharma Traders": 4,
+      "Patel Mills": 3,
+      "Gupta Stationery": 3,
+      "Khan Hardware": 3,
+      "Bose & Sons": 3,
+      "Reddy Transport": 3,
+      "Iyer Coffee": 3
+    },
+    "rules": {
+      "pixels_disagree": 1,
+      "max_amount": 3
+    }
+  }
+}

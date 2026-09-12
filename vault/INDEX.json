@@ -1,0 +1,66 @@
+[
+  {
+    "invoice_no": "INV-2005-01",
+    "kind": "receipt",
+    "rule": "ok",
+    "ok": true,
+    "hash": "0b54aa5102a1055933fb4957b76297acd91f9fc0ba4ed3fe744ff0158f639b20",
+    "ts": 1789238397.1561205
+  },
+  {
+    "invoice_no": "INV-2005-02",
+    "kind": "receipt",
+    "rule": "ok",
+    "ok": true,
+    "hash": "9dc6c5e55744642e91929356abcdd5713a69f68287c76662cc687fd8cb53504f",
+    "ts": 1789238397.689933
+  },
+  {
+    "invoice_no": "INV-2005-03",
+    "kind": "receipt",
+    "rule": "ok",
+    "ok": true,
+    "hash": "a562661fbc0519976c22641afa66dfc00ad1aa5195dd99876ac069204fe8e4af",
+    "ts": 1789238398.2788768
+  },
+  {
+    "invoice_no": "INV-2005-04",
+    "kind": "receipt",
+    "rule": "ok",
+    "ok": true,
+    "hash": "269625e59c003a36cc8680d0875ad1570ce00edce1f2d0b969aae50437f6d1b6",
+    "ts": 1789238398.9129686
+  },
+  {
+    "invoice_no": "INV-2005-05",
+    "kind": "receipt",
+    "rule": "ok",
+    "ok": true,
+    "hash": "52508930b9b2c6957143c06a50a450a1cceae02f08584a0455f9504c1e18c8b8",
+    "ts": 1789238399.480103
+  },
+  {
+    "invoice_no": "INV-2005-06",
+    "kind": "receipt",
+    "rule": "ok",
+    "ok": true,
+    "hash": "f093a484d12fe0bcc78007dcceeae6111b2e01b25881ba8f70d51e4605f6c760",
+    "ts": 1789238400.118404
+  },
+  {
+    "invoice_no": "INV-2005-07",
+    "kind": "receipt",
+    "rule": "ok",
+    "ok": true,
+    "hash": "2951ce3ac391ab8700ffeb123beadae6bbb557044d814909eeed996590c13374",
+    "ts": 1789238400.7600439
+  },
+  {
+    "invoice_no": "INV-2005-08",
+    "kind": "tombstone",
+    "rule": "max_amount",
+    "ok": false,
+    "hash": "f11043c723a078e82ebe1d69a3082350ff8cf09765ee5030bae2e8d46f922307",
+    "ts": 1789238401.6020362
+  }
+]

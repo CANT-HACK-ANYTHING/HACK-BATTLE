@@ -1,0 +1,24 @@
+{
+  "rule": "max_amount",
+  "detail": "on-screen amount 48900 exceeds max 5000",
+  "ts": 1789238401.5966308,
+  "window": "Ledger2005",
+  "ocr_raw": "48,900",
+  "ocr_amount": 48900,
+  "file_amount": 48900,
+  "box": [
+    188,
+    202,
+    260,
+    52
+  ],
+  "learned": {
+    "n": 77,
+    "mean": 1961.0389610389611,
+    "z": 39.29,
+    "vendor_known": false,
+    "unusual": true,
+    "p_veto": 0.948
+  },
+  "hash": "f11043c723a078e82ebe1d69a3082350ff8cf09765ee5030bae2e8d46f922307"
+}

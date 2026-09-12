@@ -1,0 +1,62 @@
+{
+  "invoice_no": {
+    "name": "invoice_no",
+    "window": "Ledger2005",
+    "role": "edit",
+    "ocr_text": "",
+    "img_hash": "0db6ebd05346bf54",
+    "x": 188,
+    "y": 58,
+    "w": 300,
+    "h": 34,
+    "last_seen": 1789238400.8537228
+  },
+  "vendor": {
+    "name": "vendor",
+    "window": "Ledger2005",
+    "role": "edit",
+    "ocr_text": "",
+    "img_hash": "23657bb14184fb72",
+    "x": 188,
+    "y": 106,
+    "w": 480,
+    "h": 34,
+    "last_seen": 1789238400.853728
+  },
+  "date": {
+    "name": "date",
+    "window": "Ledger2005",
+    "role": "edit",
+    "ocr_text": "",
+    "img_hash": "fe8a7300cca0e1eb",
+    "x": 188,
+    "y": 154,
+    "w": 220,
+    "h": 34,
+    "last_seen": 1789238400.8537307
+  },
+  "amount": {
+    "name": "amount",
+    "window": "Ledger2005",
+    "role": "edit",
+    "ocr_text": "",
+    "img_hash": "b6bc5ec1afbaf770",
+    "x": 188,
+    "y": 202,
+    "w": 260,
+    "h": 52,
+    "last_seen": 1789238400.8537326
+  },
+  "submit": {
+    "name": "submit",
+    "window": "Ledger2005",
+    "role": "button",
+    "ocr_text": "Submit",
+    "img_hash": "39bfb3fe3d922f35",
+    "x": 720,
+    "y": 286,
+    "w": 156,
+    "h": 42,
+    "last_seen": 1789238400.853735
+  }
+}

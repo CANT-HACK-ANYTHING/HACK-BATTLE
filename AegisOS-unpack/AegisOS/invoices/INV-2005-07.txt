@@ -1,0 +1,5 @@
+LEDGER INVOICE
+No: INV-2005-07
+Vendor: Iyer Coffee
+Date: 2005-09-07
+Amount INR: 1575

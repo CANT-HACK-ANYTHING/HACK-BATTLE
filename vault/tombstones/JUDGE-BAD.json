@@ -1,0 +1,10 @@
+{
+  "invoice_no": "JUDGE-BAD",
+  "vendor": "X",
+  "amount": 9,
+  "rule": "max_amount",
+  "detail": "x",
+  "hash": "00",
+  "ts": 1789238393.7767174,
+  "will_not_repeat": true
+}

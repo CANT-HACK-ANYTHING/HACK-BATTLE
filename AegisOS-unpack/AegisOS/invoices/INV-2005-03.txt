@@ -1,0 +1,5 @@
+LEDGER INVOICE
+No: INV-2005-03
+Vendor: Gupta Stationery
+Date: 2005-09-03
+Amount INR: 2100

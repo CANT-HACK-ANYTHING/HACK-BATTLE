@@ -1,0 +1,5 @@
+LEDGER INVOICE
+No: INV-2005-06
+Vendor: Reddy Transport
+Date: 2005-09-06
+Amount INR: 4200
